@@ -42,11 +42,11 @@ namespace Parquet.Data
 
       internal override void Assign(Field se)
       {
-         if(Key == null)
+         if (Key == null)
          {
             Key = se;
          }
-         else if(Value == null)
+         else if (Value == null)
          {
             Value = se;
          }
@@ -106,7 +106,7 @@ namespace Parquet.Data
          if (ReferenceEquals(obj, this)) return true;
          if (obj.GetType() != typeof(MapField)) return false;
 
-         MapField other = (MapField)obj;
+         var other = (MapField)obj;
 
          return Name.Equals(other.Name) && Key.Equals(other.Key) && Value.Equals(other.Value);
       }

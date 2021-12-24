@@ -164,7 +164,7 @@ namespace Parquet.Serialization
 
       public static void CreateGenericList(this ILGenerator il, Type elementType)
       {
-         List<ConstructorInfo> constructors = typeof(List<>).MakeGenericType(elementType).GetTypeInfo().DeclaredConstructors.ToList();
+         var constructors = typeof(List<>).MakeGenericType(elementType).GetTypeInfo().DeclaredConstructors.ToList();
 
          il.Emit(Newobj, constructors[0]);
       }
@@ -187,9 +187,9 @@ namespace Parquet.Serialization
       /// <param name="parameters">List of parameters, OpCode and LocalBuilder are supported</param>
       public static void CallVirt(this ILGenerator il, MethodInfo method, params object[] parameters)
       {
-         if(parameters != null)
+         if (parameters != null)
          {
-            foreach(object param in parameters)
+            foreach (object param in parameters)
             {
                switch (param)
                {

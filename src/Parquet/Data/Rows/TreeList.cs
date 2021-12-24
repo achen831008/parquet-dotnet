@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Parquet.Data.Rows
 {
@@ -26,7 +24,7 @@ namespace Parquet.Data.Rows
          if (depth == 0)
             return this;
 
-         if(depth > 0)
+         if (depth > 0)
          {
             TreeList result = this;
             while (depth-- > 0)
@@ -34,9 +32,9 @@ namespace Parquet.Data.Rows
                var next = new TreeList(result);
                if (result._children == null)
                   result._children = new List<TreeList>();
-               if(result._values != null)
+               if (result._values != null)
                {
-                  foreach(object v in result._values)
+                  foreach (object v in result._values)
                   {
                      next.Add(v);
                   }
@@ -50,7 +48,7 @@ namespace Parquet.Data.Rows
          }
 
          TreeList r2 = this;
-         while(depth++ < 0)
+         while (depth++ < 0)
          {
             r2 = r2._parent;
          }
@@ -60,7 +58,7 @@ namespace Parquet.Data.Rows
 
       public void Add(object value)
       {
-         if(_values == null)
+         if (_values == null)
          {
             _values = new List<object>();
          }
@@ -69,7 +67,7 @@ namespace Parquet.Data.Rows
 
       public object Compact(Type clrType)
       {
-         if(_values != null)
+         if (_values != null)
          {
             return ValuesAs(clrType);
          }
@@ -79,7 +77,7 @@ namespace Parquet.Data.Rows
 
       public object ValuesAs(Type clrType)
       {
-         Array cellArray = Array.CreateInstance(clrType, _values.Count);
+         var cellArray = Array.CreateInstance(clrType, _values.Count);
          for (int i = 0; i < _values.Count; i++)
          {
             cellArray.SetValue(_values[i], i);

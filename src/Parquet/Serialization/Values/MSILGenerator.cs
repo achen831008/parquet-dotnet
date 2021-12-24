@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
 using Parquet.Data;
 using Parquet.Data.Rows;
 using static System.Reflection.Emit.OpCodes;

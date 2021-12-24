@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Parquet.Data.Rows
 {
@@ -47,7 +46,7 @@ namespace Parquet.Data.Rows
       {
          Reset();
          var result = new List<LazyColumnEnumerator>();
-         while(MoveNext())
+         while (MoveNext())
          {
             result.Add((LazyColumnEnumerator)Current);
          }
@@ -56,11 +55,11 @@ namespace Parquet.Data.Rows
 
       public Array ToDataArray()
       {
-         Array result = Array.CreateInstance(_dc.Field.ClrNullableIfHasNullsType, _count);
+         var result = Array.CreateInstance(_dc.Field.ClrNullableIfHasNullsType, _count);
 
          int i = 0;
          Reset();
-         while(MoveNext())
+         while (MoveNext())
          {
             result.SetValue(Current, i++);
          }
@@ -76,7 +75,7 @@ namespace Parquet.Data.Rows
             return false;
          }
 
-         if(_rl == _maxRl)
+         if (_rl == _maxRl)
          {
             //If you've reached the maximum repetition level the only thing you can do is read
             //actual data from the allocated window.
@@ -119,7 +118,7 @@ namespace Parquet.Data.Rows
                //detecting empty list is not really possible in parquet
                //we make an assumption that if RL is 0, list has one element and data element is zero it's empty
                //it's a parquet format limitation
-               bool isEmpty = 
+               bool isEmpty =
                   count == 1 &&
                   rl == 0 &&
                   (_data.GetValue(_offset) == null);
@@ -141,7 +140,7 @@ namespace Parquet.Data.Rows
          }
 
          int finalCount = _count - (_offset - _start);
-         if(finalCount == 1 && prl == 0 && (_data.GetValue(_offset) == null))
+         if (finalCount == 1 && prl == 0 && (_data.GetValue(_offset) == null))
          {
             finalCount = 0;
          }

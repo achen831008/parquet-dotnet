@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Parquet.Data.Rows
 {
@@ -25,7 +24,7 @@ namespace Parquet.Data.Rows
          {
             int rl = GetRepetitionLevel(indexes, _lastIndexes);
 
-            if(!(value is string) && value is IEnumerable valueItems)
+            if (!(value is string) && value is IEnumerable valueItems)
             {
                int count = 0;
                foreach (object valueItem in (IEnumerable)value)
@@ -36,7 +35,7 @@ namespace Parquet.Data.Rows
                   count += 1;
                }
 
-               if(count == 0)
+               if (count == 0)
                {
                   //handle empty collections
                   _values.Add(null);
@@ -61,9 +60,9 @@ namespace Parquet.Data.Rows
 
       public DataColumn ToDataColumn()
       {
-         Array data = Array.CreateInstance(_dataField.ClrNullableIfHasNullsType, _values.Count);
+         var data = Array.CreateInstance(_dataField.ClrNullableIfHasNullsType, _values.Count);
 
-         for(int i = 0; i < _values.Count; i++)
+         for (int i = 0; i < _values.Count; i++)
          {
             data.SetValue(_values[i], i);
          }

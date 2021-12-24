@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Parquet.Data;
 using Xunit;
 
@@ -117,13 +118,13 @@ namespace Parquet.Test
       [InlineData("double")]
       [InlineData("dateTime")]
       [InlineData("dateTimeWithOffset")]
-      public void Distinct_stat_for_basic_data_types(string name)
+      public async Task Distinct_stat_for_basic_data_types(string name)
       {
          TestDesc test = NameToTest[name];
 
          var id = new DataField("id", test.Type);
 
-         DataColumn rc = WriteReadSingleColumn(id, new DataColumn(id, test.Data));
+         DataColumn rc = await WriteReadSingleColumn(id, new DataColumn(id, test.Data));
 
          Assert.Equal(test.Data.Length, rc.CalculateRowCount());
          Assert.Equal(test.DistinctCount, rc.Statistics.DistinctCount);

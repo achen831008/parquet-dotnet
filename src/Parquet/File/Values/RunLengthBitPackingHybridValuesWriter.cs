@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -44,14 +42,14 @@ namespace Parquet.File.Values
          {
             int item = data[i];
 
-            if(chunkCount == 0)
+            if (chunkCount == 0)
             {
                chunkCount = 1;
                lastValue = item;
             }
             else
             {
-               if(item != lastValue || chunkCount == maxCount)
+               if (item != lastValue || chunkCount == maxCount)
                {
                   WriteRle(writer, chunkCount, lastValue, bitWidth);
 
@@ -65,7 +63,7 @@ namespace Parquet.File.Values
             }
          }
 
-         if(chunkCount > 0)
+         if (chunkCount > 0)
          {
             WriteRle(writer, chunkCount, lastValue, bitWidth);
          }
@@ -85,7 +83,7 @@ namespace Parquet.File.Values
       {
          byte[] dataBytes = BitConverter.GetBytes(value);
 
-         switch(byteWidth)
+         switch (byteWidth)
          {
             case 0:
                break;
@@ -111,7 +109,7 @@ namespace Parquet.File.Values
 
       private static void WriteUnsignedVarInt(BinaryWriter writer, int value)
       {
-         while(value > 127)
+         while (value > 127)
          {
             byte b = (byte)((value & 0x7F) | 0x80);
 

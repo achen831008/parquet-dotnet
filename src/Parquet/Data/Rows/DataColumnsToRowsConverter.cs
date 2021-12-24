@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -35,7 +34,7 @@ namespace Parquet.Data.Rows
 
          ColumnsToRows(_schema.Fields, pathToColumn, result, _totalRowRount);
 
-         foreach(Row row in result)
+         foreach (Row row in result)
          {
             row.Schema = _schema.Fields.ToArray();
          }
@@ -45,7 +44,7 @@ namespace Parquet.Data.Rows
 
       private void ColumnsToRows(IReadOnlyCollection<Field> fields, Dictionary<string, LazyColumnEnumerator> pathToColumn, List<Row> result, long rowCount)
       {
-         for(int rowIndex = 0; rowCount == -1 || rowIndex < rowCount; rowIndex++)
+         for (int rowIndex = 0; rowCount == -1 || rowIndex < rowCount; rowIndex++)
          {
             if (!TryBuildNextRow(fields, pathToColumn, out Row row))
                break;
@@ -58,7 +57,7 @@ namespace Parquet.Data.Rows
       {
          var rows = new List<Row>();
 
-         while(TryBuildNextRow(fields, pathToColumn, out Row row))
+         while (TryBuildNextRow(fields, pathToColumn, out Row row))
          {
             rows.Add(row);
          }
@@ -69,9 +68,9 @@ namespace Parquet.Data.Rows
       private bool TryBuildNextRow(IReadOnlyCollection<Field> fields, Dictionary<string, LazyColumnEnumerator> pathToColumn, out Row row)
       {
          var rowList = new List<object>();
-         foreach(Field f in fields)
+         foreach (Field f in fields)
          {
-            if(!TryBuildNextCell(f, pathToColumn, out object cell))
+            if (!TryBuildNextCell(f, pathToColumn, out object cell))
             {
                row = null;
                return false;
@@ -129,7 +128,7 @@ namespace Parquet.Data.Rows
             .Select(ptc => new { path = ptc.Key, collection = ptc.Value, moved = ptc.Value.MoveNext() })
             .ToList();
 
-         if(nestedPathTicks.Any(t => !t.moved))
+         if (nestedPathTicks.Any(t => !t.moved))
          {
             cell = new Row[0];
             return true;
@@ -156,7 +155,7 @@ namespace Parquet.Data.Rows
          LazyColumnEnumerator keysCollection = pathToColumn[mf.Key.Path];
          LazyColumnEnumerator valuesCollection = pathToColumn[mf.Value.Path];
 
-         if(keysCollection.MoveNext() && valuesCollection.MoveNext())
+         if (keysCollection.MoveNext() && valuesCollection.MoveNext())
          {
             var ptc = new Dictionary<string, LazyColumnEnumerator>
             {

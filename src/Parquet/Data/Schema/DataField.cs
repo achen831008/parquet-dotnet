@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using Parquet.File;
 
 namespace Parquet.Data
@@ -39,7 +38,7 @@ namespace Parquet.Data
       /// </summary>
       /// <param name="name">Field name</param>
       /// <param name="clrType">CLR type of this field. The type is internally discovered and expanded into appropriate Parquet flags.</param>
-      public DataField(string name, Type clrType) 
+      public DataField(string name, Type clrType)
          : this(name,
               Discover(clrType).dataType,
               Discover(clrType).hasNulls,

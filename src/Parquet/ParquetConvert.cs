@@ -1,9 +1,9 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Parquet.Data;
-using Parquet.File;
 using Parquet.Serialization;
 using Parquet.Serialization.Values;
 
@@ -27,7 +27,7 @@ namespace Parquet
       /// <param name="rowGroupSize"></param>
       /// <param name="append"></param>
       /// <returns></returns>
-      public static Schema Serialize<T>(IEnumerable<T> objectInstances, Stream destination,
+      public static async Task<Schema> Serialize<T>(IEnumerable<T> objectInstances, Stream destination,
          Schema schema = null,
          CompressionMethod compressionMethod = CompressionMethod.Snappy,
          int rowGroupSize = 5000,
@@ -44,7 +44,7 @@ namespace Parquet
             schema = SchemaReflector.Reflect<T>();
          }
 
-         using (var writer = new ParquetWriter(schema, destination, append: append))
+         using (ParquetWriter writer = await ParquetWriter.Open(schema, destination, append: append))
          {
             writer.CompressionMethod = compressionMethod;
 
@@ -61,9 +61,9 @@ namespace Parquet
 
                using (ParquetRowGroupWriter groupWriter = writer.CreateRowGroup())
                {
-                  foreach(DataColumn dataColumn in columns)
+                  foreach (DataColumn dataColumn in columns)
                   {
-                     groupWriter.WriteColumn(dataColumn);
+                     await groupWriter.WriteColumn(dataColumn);
                   }
                }
             }
@@ -85,7 +85,7 @@ namespace Parquet
       /// <param name="rowGroupSize"></param>
       /// <param name="append"></param>
       /// <returns></returns>
-      public static Schema Serialize<T>(IEnumerable<T> objectInstances, string filePath,
+      public static async Task<Schema> Serialize<T>(IEnumerable<T> objectInstances, string filePath,
          Schema schema = null,
          CompressionMethod compressionMethod = CompressionMethod.Snappy,
          int rowGroupSize = 5000,
@@ -94,7 +94,7 @@ namespace Parquet
       {
          using (Stream destination = System.IO.File.Create(filePath))
          {
-            return Serialize(objectInstances, destination, schema, compressionMethod, rowGroupSize, append);
+            return await Serialize(objectInstances, destination, schema, compressionMethod, rowGroupSize, append);
          }
       }
 
@@ -105,10 +105,10 @@ namespace Parquet
       /// <param name="input"></param>
       /// <param name="rowGroupIndex"></param>
       /// <returns></returns>
-      public static T[] Deserialize<T>(Stream input, int rowGroupIndex=-1) where T : new()
+      public static async Task<T[]> Deserialize<T>(Stream input, int rowGroupIndex = -1) where T : new()
       {
          var result = new List<T>();
-         using (var reader = new ParquetReader(input))
+         using (ParquetReader reader = await ParquetReader.Open(input))
          {
             Schema fileSchema = new SchemaReflector(typeof(T)).Reflect();
             DataField[] dataFields = fileSchema.GetDataFields();
@@ -140,7 +140,7 @@ namespace Parquet
                .Select(df => groupReader.ReadColumn(df))
                .ToArray();
 
-            T[] rb = new T[groupReader.RowCount];
+            var rb = new T[groupReader.RowCount];
             for (int ie = 0; ie < rb.Length; ie++)
             {
                rb[ie] = new T();
@@ -153,45 +153,6 @@ namespace Parquet
             return rb;
          }
       }
-
-      /// <summary>
-      /// 
-      /// </summary>
-      /// <typeparam name="T"></typeparam>
-      /// <param name="input"></param>
-      /// <returns></returns>
-      public static IEnumerable<T[]> DeserializeGroups<T>(Stream input) where T : new()
-      {
-         var bridge = new ClrBridge(typeof(T));
-
-         using (var reader = new ParquetReader(input))
-         {
-            Schema fileSchema = reader.Schema;
-            DataField[] dataFields = fileSchema.GetDataFields();
-
-            for (int i = 0; i < reader.RowGroupCount; i++)
-            {
-               using (ParquetRowGroupReader groupReader = reader.OpenRowGroupReader(i))
-               {
-                  DataColumn[] groupColumns = dataFields
-                     .Select(df => groupReader.ReadColumn(df))
-                     .ToArray();
-
-                  T[] rb = new T[groupReader.RowCount];
-                  for (int ie = 0; ie < rb.Length; ie++)
-                  {
-                     rb[ie] = new T();
-                  }
-
-                  for (int ic = 0; ic < groupColumns.Length; ic++)
-                  {
-                     bridge.AssignColumn(groupColumns[ic], rb);
-                  }
-
-                  yield return rb;
-               }
-            }
-         }
-      }
    }
 }
+*/

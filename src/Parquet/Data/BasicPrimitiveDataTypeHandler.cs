@@ -22,7 +22,7 @@ namespace Parquet.Data
 
       public override Array GetArray(int minCount, bool rent, bool isNullable)
       {
-         if(rent)
+         if (rent)
          {
             return isNullable
                ? ArrayPool<TSystemType?>.Shared.Rent(minCount)
@@ -48,7 +48,7 @@ namespace Parquet.Data
 
       private TSystemType?[] UnpackDefinitions(TSystemType[] src, int[] definitionLevels, int maxDefinitionLevel)
       {
-         TSystemType?[] result = (TSystemType?[])GetArray(definitionLevels.Length, false, true);
+         var result = (TSystemType?[])GetArray(definitionLevels.Length, false, true);
 
          int isrc = 0;
          for (int i = 0; i < definitionLevels.Length; i++)
@@ -71,12 +71,12 @@ namespace Parquet.Data
          WritableArrayView<TSystemType> result = ArrayView.CreateWritable<TSystemType>(data.Length);
          int ir = 0;
          nullCount = 0;
-         
-         for(int i = 0; i < data.Length; i++)
+
+         for (int i = 0; i < data.Length; i++)
          {
             TSystemType? value = data[i];
 
-            if(value == null)
+            if (value == null)
             {
                definitionLevels[i] = 0;
                nullCount++;
@@ -103,9 +103,9 @@ namespace Parquet.Data
 
       public override byte[] PlainEncode(Thrift.SchemaElement tse, TSystemType x)
       {
-         using(var ms = new MemoryStream())
+         using (var ms = new MemoryStream())
          {
-            using(var bs = new BinaryWriter(ms))
+            using (var bs = new BinaryWriter(ms))
             {
                WriteOne(bs, x);
             }
@@ -118,9 +118,9 @@ namespace Parquet.Data
       {
          if (encoded == null) return null;
 
-         using(var ms = new MemoryStream(encoded))
+         using (var ms = new MemoryStream(encoded))
          {
-            using(var br = new BinaryReader(ms))
+            using (var br = new BinaryReader(ms))
             {
                TSystemType element = ReadSingle(br, tse, -1);
                return element;

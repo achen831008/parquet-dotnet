@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Numerics;
-using System.Text;
-using Parquet.Data;
 
 namespace Parquet.Data.Concrete
 {

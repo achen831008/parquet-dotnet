@@ -12,7 +12,7 @@ namespace Parquet.File
    {
       private static ArrayPool<byte> BytesPool = ArrayPool<byte>.Shared;
 
-      private static readonly Dictionary<CompressionMethod, Thrift.CompressionCodec> _compressionMethodToCodec = 
+      private static readonly Dictionary<CompressionMethod, Thrift.CompressionCodec> _compressionMethodToCodec =
          new Dictionary<CompressionMethod, Thrift.CompressionCodec>
       {
          { CompressionMethod.None, Thrift.CompressionCodec.UNCOMPRESSED },
@@ -36,9 +36,9 @@ namespace Parquet.File
       {
          Stream dest;
 
-/*#if !NET14
-         nakedStream = new BufferedStream(nakedStream); //optimise writer performance
-#endif*/
+         /*#if !NET14
+                  nakedStream = new BufferedStream(nakedStream); //optimise writer performance
+         #endif*/
 
          switch (compressionMethod)
          {
@@ -62,7 +62,7 @@ namespace Parquet.File
 
       private static CompressionLevel ToGzipCompressionLevel(int compressionLevel)
       {
-         switch(compressionLevel)
+         switch (compressionLevel)
          {
             case 0:
                return CompressionLevel.NoCompression;

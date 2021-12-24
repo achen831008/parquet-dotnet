@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Parquet.Data;
 using Parquet.File.Data;
 using Parquet.Thrift;
@@ -29,7 +30,7 @@ namespace Parquet.File
          _fileMeta = CreateThriftSchema(schema);
          _fileMeta.Num_rows = totalRowCount;
 
-         _fileMeta.Created_by = $"Parquet.Net version %Version% (build %Git.LongCommitHash%)";
+         _fileMeta.Created_by = $"Parquet.Net";
          _tree = new ThriftSchemaTree(_fileMeta.Schema);
       }
 
@@ -57,9 +58,10 @@ namespace Parquet.File
          _fileMeta.Num_rows += totalRowCount;
       }
 
-      public long Write(ThriftStream thriftStream)
+      public async Task<long> Write(ThriftStream thriftStream)
       {
-         return thriftStream.Write(_fileMeta);
+         int l = await thriftStream.WriteAsync(_fileMeta);
+         return l;
       }
 
       public Thrift.SchemaElement GetSchemaElement(Thrift.ColumnChunk columnChunk)
@@ -74,7 +76,7 @@ namespace Parquet.File
          int i = 0;
          foreach (string pp in path)
          {
-            while(i < _fileMeta.Schema.Count)
+            while (i < _fileMeta.Schema.Count)
             {
                if (_fileMeta.Schema[i].Name == pp) break;
 
@@ -90,7 +92,7 @@ namespace Parquet.File
          var path = new List<string>();
 
          ThriftSchemaTree.Node wrapped = _tree.Find(schemaElement);
-         while(wrapped.parent != null)
+         while (wrapped.parent != null)
          {
             path.Add(wrapped.element.Name);
             wrapped = wrapped.parent;
@@ -123,10 +125,10 @@ namespace Parquet.File
 
          foreach (string pp in path)
          {
-            while(i < fieldCount)
+            while (i < fieldCount)
             {
                SchemaElement schemaElement = _fileMeta.Schema[i];
-               if(string.CompareOrdinal(schemaElement.Name, pp) == 0)
+               if (string.CompareOrdinal(schemaElement.Name, pp) == 0)
                {
                   Thrift.SchemaElement se = schemaElement;
 
@@ -142,7 +144,7 @@ namespace Parquet.File
                i++;
             }
          }
-         
+
          _memoizedLevels.Add(comparer, Tuple.Create(maxRepetitionLevel, maxDefinitionLevel));
       }
 
@@ -218,7 +220,7 @@ namespace Parquet.File
             Thrift.SchemaElement tse = _fileMeta.Schema[si];
             IDataTypeHandler dth = DataTypeFactory.Match(tse, formatOptions);
 
-            if(dth == null)
+            if (dth == null)
             {
                throw new InvalidOperationException($"cannot find data type handler to create model schema for {tse.Describe()}");
             }
@@ -231,7 +233,7 @@ namespace Parquet.File
             {
                var childContainer = new List<Field>();
                CreateModelSchema(se.Path, childContainer, ownedChildCount, ref si, formatOptions);
-               foreach(Field cse in childContainer)
+               foreach (Field cse in childContainer)
                {
                   se.Assign(cse);
                }
@@ -281,7 +283,7 @@ namespace Parquet.File
 
       private void CreateThriftSchema(IEnumerable<Field> ses, Thrift.SchemaElement parent, IList<Thrift.SchemaElement> container)
       {
-         foreach(Field se in ses)
+         foreach (Field se in ses)
          {
             IDataTypeHandler handler = DataTypeFactory.Match(se);
 
@@ -298,7 +300,7 @@ namespace Parquet.File
       class ThriftSchemaTree
       {
          readonly Dictionary<SchemaElement, Node> _memoizedFindResults = new Dictionary<SchemaElement, Node>();
-         
+
          public class Node
          {
             public Thrift.SchemaElement element;
@@ -329,11 +331,11 @@ namespace Parquet.File
 
          private Node Find(Node root, Thrift.SchemaElement tse)
          {
-            foreach(Node child in root.children)
+            foreach (Node child in root.children)
             {
                if (child.element == tse) return child;
 
-               if(child.children != null)
+               if (child.children != null)
                {
                   Node cf = Find(child, tse);
                   if (cf != null) return cf;
@@ -346,12 +348,12 @@ namespace Parquet.File
          private void BuildSchema(Node parent, List<Thrift.SchemaElement> schema, int count, ref int i)
          {
             parent.children = new List<Node>();
-            for(int ic = 0; ic < count; ic++)
+            for (int ic = 0; ic < count; ic++)
             {
                Thrift.SchemaElement child = schema[i++];
                var node = new Node { element = child, parent = parent };
                parent.children.Add(node);
-               if(child.Num_children > 0)
+               if (child.Num_children > 0)
                {
                   BuildSchema(node, schema, child.Num_children, ref i);
                }

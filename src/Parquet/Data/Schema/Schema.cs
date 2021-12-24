@@ -48,7 +48,7 @@ namespace Parquet.Data
 
       private Schema(List<Field> fields)
       {
-         if(fields.Count == 0)
+         if (fields.Count == 0)
          {
             throw new ArgumentException("at least one field is required", nameof(fields));
          }
@@ -56,7 +56,7 @@ namespace Parquet.Data
          _fields = fields;
 
          //set levels now, after schema is constructeds
-         foreach(Field field in fields)
+         foreach (Field field in fields)
          {
             field.PropagateLevels(0, 0);
          }
@@ -96,12 +96,12 @@ namespace Parquet.Data
                   analyse(((ListField)f).Item);
                   break;
                case SchemaType.Map:
-                  MapField mf = (MapField)f;
+                  var mf = (MapField)f;
                   analyse(mf.Key);
                   analyse(mf.Value);
                   break;
                case SchemaType.Struct:
-                  StructField sf = (StructField)f;
+                  var sf = (StructField)f;
                   traverse(sf.Fields);
                   break;
             }
@@ -109,7 +109,7 @@ namespace Parquet.Data
 
          void traverse(IEnumerable<Field> fields)
          {
-            foreach(Field f in fields)
+            foreach (Field f in fields)
             {
                analyse(f);
             }
@@ -139,7 +139,7 @@ namespace Parquet.Data
 
          if (_fields.Count != other._fields.Count) return false;
 
-         for(int i = 0; i < _fields.Count; i++)
+         for (int i = 0; i < _fields.Count; i++)
          {
             if (!_fields[i].Equals(other._fields[i])) return false;
          }
@@ -152,7 +152,7 @@ namespace Parquet.Data
       /// </summary>
       public string GetNotEqualsMessage(Schema other, string thisName, string otherName)
       {
-         if(_fields.Count != other._fields.Count)
+         if (_fields.Count != other._fields.Count)
          {
             return $"different number of elements ({_fields.Count} != {other._fields.Count})";
          }
@@ -162,7 +162,7 @@ namespace Parquet.Data
          {
             if (!_fields[i].Equals(other._fields[i]))
             {
-               if(sb.Length != 0)
+               if (sb.Length != 0)
                {
                   sb.Append(", ");
                }
@@ -196,7 +196,7 @@ namespace Parquet.Data
          if (ReferenceEquals(this, obj)) return true;
          if (obj.GetType() != GetType()) return false;
 
-         return Equals((Schema) obj);
+         return Equals((Schema)obj);
       }
 
       /// <summary>

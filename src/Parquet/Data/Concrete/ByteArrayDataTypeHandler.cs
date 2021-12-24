@@ -67,7 +67,7 @@ namespace Parquet.Data.Concrete
       protected override byte[] ReadSingle(BinaryReader reader, Thrift.SchemaElement tse, int length)
       {
          //length
-         if(length == -1) length = reader.ReadInt32();
+         if (length == -1) length = reader.ReadInt32();
 
          //data
          return reader.ReadBytes(length);

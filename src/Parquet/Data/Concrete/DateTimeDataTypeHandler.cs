@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.IO;
-using Parquet.File.Values.Primitives;
 
 namespace Parquet.Data.Concrete
 {

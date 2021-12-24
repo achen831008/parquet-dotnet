@@ -31,7 +31,7 @@ namespace Parquet.Data
       public IEnumerable<T> GetValuesAndReturnArray<T>()
       {
          AssertNotConsumed();
-         T[] typed = (T[]) _array;
+         var typed = (T[])_array;
          for (int i = 0; i < Count; i++)
          {
             yield return typed[i];
@@ -44,7 +44,7 @@ namespace Parquet.Data
       public IEnumerable<T> GetValuesAndReturnArray<T>(DataColumnStatistics statistics, IEqualityComparer<T> equalityComparer, IComparer<T> comparer)
       {
          AssertNotConsumed();
-         T[] typed = (T[]) _array;
+         var typed = (T[])_array;
          if (statistics == null)
          {
             for (int i = 0; i < Count; i++)
@@ -60,7 +60,7 @@ namespace Parquet.Data
 #if NETSTANDARD2_1
          HashSet<T> hashSet = new HashSet<T>(Count, equalityComparer);
 #else
-         HashSet<T> hashSet = new HashSet<T>(equalityComparer);
+         var hashSet = new HashSet<T>(equalityComparer);
 #endif
 
          T min = default;

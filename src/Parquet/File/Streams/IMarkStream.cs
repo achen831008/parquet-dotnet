@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Parquet.File.Streams
+﻿namespace Parquet.File.Streams
 {
    interface IMarkStream
    {

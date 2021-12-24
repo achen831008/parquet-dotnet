@@ -55,7 +55,7 @@ namespace Parquet.Data
 
       public static IDataTypeHandler Match(Field field)
       {
-         switch(field.SchemaType)
+         switch (field.SchemaType)
          {
             case SchemaType.Struct:
                return new StructureDataTypeHandler();

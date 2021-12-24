@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Text;
 using Parquet.Data;
 using Parquet.Data.Rows;
@@ -16,7 +15,7 @@ namespace Parquet.Extensions
 
       public static void StartArray(this StringBuilder sb, StringFormat sf, int level)
       {
-         if(level > 0)
+         if (level > 0)
          {
             sb.Append("[");
          }
@@ -24,7 +23,7 @@ namespace Parquet.Extensions
 
       public static void EndArray(this StringBuilder sb, StringFormat sf, int level)
       {
-         if(level > 0)
+         if (level > 0)
          {
             sb.Append("]");
          }
@@ -50,12 +49,12 @@ namespace Parquet.Extensions
          else
          {
             sb.AppendLine();
-         }         
+         }
       }
 
       public static void StartObject(this StringBuilder sb, StringFormat sf)
       {
-         if(sf == StringFormat.Json || sf == StringFormat.JsonSingleQuote)
+         if (sf == StringFormat.Json || sf == StringFormat.JsonSingleQuote)
             sb.Append("{");
       }
 
@@ -104,7 +103,7 @@ namespace Parquet.Extensions
          {
             EncodeJson(sb, sf, value);
          }
-         else if(sf == StringFormat.Csv)
+         else if (sf == StringFormat.Csv)
          {
             EncodeCsv(sb, sf, value);
          }
@@ -134,13 +133,13 @@ namespace Parquet.Extensions
             sb.Append(HttpEncoder.JavaScriptStringEncode((string)value));
             sb.Append(quote);
          }
-         else if(t == typeof(DateTimeOffset))
+         else if (t == typeof(DateTimeOffset))
          {
             sb.Append(quote);
             sb.Append(value.ToString());
             sb.Append(quote);
          }
-         else if(t == typeof(bool))
+         else if (t == typeof(bool))
          {
             sb.Append((bool)value ? "true" : "false");
          }

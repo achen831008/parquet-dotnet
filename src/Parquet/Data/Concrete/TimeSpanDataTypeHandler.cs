@@ -3,9 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using Parquet.Data;
-using Parquet.File.Values.Primitives;
 
 namespace Parquet.Data.Concrete
 {
@@ -114,7 +111,7 @@ namespace Parquet.Data.Concrete
       {
          int iv = reader.ReadInt32();
          //TimeSpan e = iv.FromUnixDays();
-         TimeSpan e = new TimeSpan(0, 0, 0, 0, iv);
+         var e = new TimeSpan(0, 0, 0, 0, iv);
          return e;
       }
 
@@ -143,7 +140,7 @@ namespace Parquet.Data.Concrete
       private static TimeSpan ReadAsInt64(BinaryReader reader)
       {
          long lv = reader.ReadInt64();
-         return new TimeSpan(lv*10);
+         return new TimeSpan(lv * 10);
       }
 
       private static int ReadAsInt64(BinaryReader reader, TimeSpan[] dest, int offset)
@@ -169,7 +166,7 @@ namespace Parquet.Data.Concrete
 
       private static void WriteAsInt64(BinaryWriter writer, TimeSpan dto)
       {
-         long micros = dto.Ticks/10;
+         long micros = dto.Ticks / 10;
          writer.Write(micros);
       }
 

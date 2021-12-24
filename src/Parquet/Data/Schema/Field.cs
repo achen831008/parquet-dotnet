@@ -66,13 +66,13 @@ namespace Parquet.Data
       {
          int[] rl = new int[count];
 
-         if(count > 0)
+         if (count > 0)
          {
             rl[0] = 0;
          }
 
          int mrl = MaxRepetitionLevel;
-         for(int i = 1; i < count; i++)
+         for (int i = 1; i < count; i++)
          {
             rl[i] = mrl;
          }

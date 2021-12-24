@@ -1,143 +1,147 @@
-#pragma warning disable CS1587
+// Licensed to the Apache Software Foundation(ASF) under one
+// or more contributor license agreements.See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License. You may obtain a copy of the License at
+// 
+//     http://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
 
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
- *
- * Contains some contributions under the Thrift Software License.
- * Please see doc/old-thrift-license.txt in the Thrift distribution for
- * details.
- */
-
-using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Thrift.Protocol;
+using Thrift.Protocol.Entities;
+using Thrift.Protocol.Utilities;
 
 namespace Thrift
 {
-    class TApplicationException : TException
-    {
-        protected ExceptionType type;
+   // ReSharper disable once InconsistentNaming
+   class TApplicationException : TException
+   {
+      public enum ExceptionType
+      {
+         Unknown,
+         UnknownMethod,
+         InvalidMessageType,
+         WrongMethodName,
+         BadSequenceId,
+         MissingResult,
+         InternalError,
+         ProtocolError,
+         InvalidTransform,
+         InvalidProtocol,
+         UnsupportedClientType
+      }
 
-        public TApplicationException()
-        {
-        }
+      private const int MessageTypeFieldId = 1;
+      private const int ExTypeFieldId = 2;
 
-        public TApplicationException(ExceptionType type)
-        {
-            this.type = type;
-        }
+      public ExceptionType Type { get; private set; }
 
-        public TApplicationException(ExceptionType type, string message)
-            : base(message)
-        {
-            this.type = type;
-        }
+      public TApplicationException()
+      {
+      }
 
-        public static TApplicationException Read(TProtocol iprot)
-        {
-            TField field;
+      public TApplicationException(ExceptionType type)
+      {
+         Type = type;
+      }
 
-            string message = null;
-            ExceptionType type = ExceptionType.Unknown;
+      public TApplicationException(ExceptionType type, string message)
+          : base(message, null) // TApplicationException is serializable, but we never serialize InnerException
+      {
+         Type = type;
+      }
 
-            iprot.ReadStructBegin();
-            while (true)
+      public static async ValueTask<TApplicationException> ReadAsync(TProtocol inputProtocol, CancellationToken cancellationToken)
+      {
+         string message = null;
+         ExceptionType type = ExceptionType.Unknown;
+
+         await inputProtocol.ReadStructBeginAsync(cancellationToken);
+         while (true)
+         {
+            TField field = await inputProtocol.ReadFieldBeginAsync(cancellationToken);
+            if (field.Type == TType.Stop)
             {
-                field = iprot.ReadFieldBegin();
-                if (field.Type == TType.Stop)
-                {
-                    break;
-                }
-
-                switch (field.ID)
-                {
-                    case 1:
-                        if (field.Type == TType.String)
-                        {
-                            message = iprot.ReadString();
-                        }
-                        else
-                        {
-                            TProtocolUtil.Skip(iprot, field.Type);
-                        }
-                        break;
-                    case 2:
-                        if (field.Type == TType.I32)
-                        {
-                            type = (ExceptionType)iprot.ReadI32();
-                        }
-                        else
-                        {
-                            TProtocolUtil.Skip(iprot, field.Type);
-                        }
-                        break;
-                    default:
-                        TProtocolUtil.Skip(iprot, field.Type);
-                        break;
-                }
-
-                iprot.ReadFieldEnd();
+               break;
             }
 
-            iprot.ReadStructEnd();
-
-            return new TApplicationException(type, message);
-        }
-
-        public void Write(TProtocol oprot)
-        {
-            TStruct struc = new TStruct("TApplicationException");
-            TField field = new TField();
-
-            oprot.WriteStructBegin(struc);
-
-            if (!String.IsNullOrEmpty(Message))
+            switch (field.ID)
             {
-                field.Name = "message";
-                field.Type = TType.String;
-                field.ID = 1;
-                oprot.WriteFieldBegin(field);
-                oprot.WriteString(Message);
-                oprot.WriteFieldEnd();
+               case MessageTypeFieldId:
+                  if (field.Type == TType.String)
+                  {
+                     message = await inputProtocol.ReadStringAsync(cancellationToken);
+                  }
+                  else
+                  {
+                     await TProtocolUtil.SkipAsync(inputProtocol, field.Type, cancellationToken);
+                  }
+                  break;
+               case ExTypeFieldId:
+                  if (field.Type == TType.I32)
+                  {
+                     type = (ExceptionType)await inputProtocol.ReadI32Async(cancellationToken);
+                  }
+                  else
+                  {
+                     await TProtocolUtil.SkipAsync(inputProtocol, field.Type, cancellationToken);
+                  }
+                  break;
+               default:
+                  await TProtocolUtil.SkipAsync(inputProtocol, field.Type, cancellationToken);
+                  break;
             }
 
-            field.Name = "type";
-            field.Type = TType.I32;
-            field.ID = 2;
-            oprot.WriteFieldBegin(field);
-            oprot.WriteI32((int)type);
-            oprot.WriteFieldEnd();
-            oprot.WriteFieldStop();
-            oprot.WriteStructEnd();
-        }
+            await inputProtocol.ReadFieldEndAsync(cancellationToken);
+         }
 
-        public enum ExceptionType
-        {
-            Unknown,
-            UnknownMethod,
-            InvalidMessageType,
-            WrongMethodName,
-            BadSequenceID,
-            MissingResult,
-            InternalError,
-            ProtocolError,
-            InvalidTransform,
-            InvalidProtocol,
-            UnsupportedClientType
-        }
-    }
+         await inputProtocol.ReadStructEndAsync(cancellationToken);
+
+         return new TApplicationException(type, message);
+      }
+
+      public async Task WriteAsync(TProtocol outputProtocol, CancellationToken cancellationToken)
+      {
+         cancellationToken.ThrowIfCancellationRequested();
+
+         const string messageTypeFieldName = "message";
+         const string exTypeFieldName = "exType";
+         const string structApplicationExceptionName = "TApplicationException";
+
+         var struc = new TStruct(structApplicationExceptionName);
+         var field = new TField();
+
+         await outputProtocol.WriteStructBeginAsync(struc, cancellationToken);
+
+         if (!string.IsNullOrEmpty(Message))
+         {
+            field.Name = messageTypeFieldName;
+            field.Type = TType.String;
+            field.ID = MessageTypeFieldId;
+            await outputProtocol.WriteFieldBeginAsync(field, cancellationToken);
+            await outputProtocol.WriteStringAsync(Message, cancellationToken);
+            await outputProtocol.WriteFieldEndAsync(cancellationToken);
+         }
+
+         field.Name = exTypeFieldName;
+         field.Type = TType.I32;
+         field.ID = ExTypeFieldId;
+
+         await outputProtocol.WriteFieldBeginAsync(field, cancellationToken);
+         await outputProtocol.WriteI32Async((int)Type, cancellationToken);
+         await outputProtocol.WriteFieldEndAsync(cancellationToken);
+         await outputProtocol.WriteFieldStopAsync(cancellationToken);
+         await outputProtocol.WriteStructEndAsync(cancellationToken);
+      }
+   }
 }

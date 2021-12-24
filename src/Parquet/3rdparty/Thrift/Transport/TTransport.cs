@@ -1,61 +1,68 @@
-#pragma warning disable CS1587
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-
-
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
- *
- * Contains some contributions under the Thrift Software License.
- * Please see doc/old-thrift-license.txt in the Thrift distribution for
- * details.
- */
+// Licensed to the Apache Software Foundation(ASF) under one
+// or more contributor license agreements.See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License. You may obtain a copy of the License at
+// 
+//     http://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
 
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Thrift.Transport
 {
-   public abstract class TTransport : IDisposable
+   //TODO: think about client info 
+   // ReSharper disable once InconsistentNaming
+   abstract class TTransport : IDisposable
    {
-      public abstract bool IsOpen
-      {
-         get;
-      }
-
-      private byte[] _peekBuffer = new byte[1];
+      //TODO: think how to avoid peek byte
+      private readonly byte[] _peekBuffer = new byte[1];
       private bool _hasPeekByte;
 
-      public bool Peek()
+      public abstract bool IsOpen { get; }
+      public abstract TConfiguration Configuration { get; }
+      public abstract void UpdateKnownMessageSize(long size);
+      public abstract void CheckReadBytesAvailable(long numBytes);
+      public void Dispose()
+      {
+         Dispose(true);
+         GC.SuppressFinalize(this);
+      }
+
+      public async ValueTask<bool> PeekAsync(CancellationToken cancellationToken)
       {
          //If we already have a byte read but not consumed, do nothing.
          if (_hasPeekByte)
+         {
             return true;
+         }
 
          //If transport closed we can't peek.
          if (!IsOpen)
+         {
             return false;
+         }
 
          //Try to read one byte. If succeeds we will need to store it for the next read.
          try
          {
-            int bytes = Read(_peekBuffer, 0, 1);
+            int bytes = await ReadAsync(_peekBuffer, 0, 1, cancellationToken);
             if (bytes == 0)
+            {
                return false;
+            }
          }
          catch (IOException)
          {
@@ -66,86 +73,97 @@ namespace Thrift.Transport
          return true;
       }
 
-      public abstract void Open();
+
+      public abstract Task OpenAsync(CancellationToken cancellationToken = default);
 
       public abstract void Close();
 
-      protected static void ValidateBufferArgs(byte[] buf, int off, int len)
+      protected static void ValidateBufferArgs(byte[] buffer, int offset, int length)
       {
-         if (buf == null)
-            throw new ArgumentNullException("buf");
-         if (off < 0)
-            throw new ArgumentOutOfRangeException("Buffer offset is smaller than zero.");
-         if (len < 0)
-            throw new ArgumentOutOfRangeException("Buffer length is smaller than zero.");
-         if (off + len > buf.Length)
-            throw new ArgumentOutOfRangeException("Not enough data.");
+         if (buffer == null)
+         {
+            throw new ArgumentNullException(nameof(buffer));
+         }
+
+#if DEBUG // let it fail with OutOfRange in RELEASE mode
+         if (offset < 0)
+         {
+            throw new ArgumentOutOfRangeException(nameof(offset), "Buffer offset must be >= 0");
+         }
+
+         if (length < 0)
+         {
+            throw new ArgumentOutOfRangeException(nameof(length), "Buffer length must be >= 0");
+         }
+
+         if (offset + length > buffer.Length)
+         {
+            throw new ArgumentOutOfRangeException(nameof(buffer), "Not enough data");
+         }
+#endif
       }
 
-      public abstract int Read(byte[] buf, int off, int len);
 
-      public int ReadAll(byte[] buf, int off, int len)
+      public abstract ValueTask<int> ReadAsync(byte[] buffer, int offset, int length, CancellationToken cancellationToken);
+
+      public virtual async ValueTask<int> ReadAllAsync(byte[] buffer, int offset, int length, CancellationToken cancellationToken)
       {
-         ValidateBufferArgs(buf, off, len);
-         int got = 0;
+         cancellationToken.ThrowIfCancellationRequested();
 
-         //If we previously peeked a byte, we need to use that first.
+         ValidateBufferArgs(buffer, offset, length);
+         if (length <= 0)
+            return 0;
+
+         // If we previously peeked a byte, we need to use that first.
+         int totalBytes = 0;
          if (_hasPeekByte)
          {
-            buf[off + got++] = _peekBuffer[0];
+            buffer[offset++] = _peekBuffer[0];
             _hasPeekByte = false;
+            if (1 == length)
+            {
+               return 1; // we're done
+            }
+            ++totalBytes;
          }
 
-         while (got < len)
+         int remaining = length - totalBytes;
+         Debug.Assert(remaining > 0);  // any other possible cases should have been handled already 
+         while (true)
          {
-            int ret = Read(buf, off + got, len - got);
-            if (ret <= 0)
+            int numBytes = await ReadAsync(buffer, offset, remaining, cancellationToken);
+            totalBytes += numBytes;
+            if (totalBytes >= length)
             {
-               throw new TTransportException(
-                   TTransportException.ExceptionType.EndOfFile,
+               return totalBytes; // we're done
+            }
+
+            if (numBytes <= 0)
+            {
+               throw new TTransportException(TTransportException.ExceptionType.EndOfFile,
                    "Cannot read, Remote side has closed");
             }
-            got += ret;
+
+            remaining -= numBytes;
+            offset += numBytes;
          }
-         return got;
       }
 
-      public virtual void Write(byte[] buf)
+      public virtual async Task WriteAsync(byte[] buffer, CancellationToken cancellationToken)
       {
-         Write(buf, 0, buf.Length);
+         await WriteAsync(buffer, 0, buffer.Length, CancellationToken.None);
       }
 
-      public abstract void Write(byte[] buf, int off, int len);
-
-      public virtual void Flush()
+      public virtual async Task WriteAsync(byte[] buffer, int offset, int length)
       {
+         await WriteAsync(buffer, offset, length, CancellationToken.None);
       }
 
-      public virtual IAsyncResult BeginFlush(AsyncCallback callback, object state)
-      {
-         throw new TTransportException(
-             TTransportException.ExceptionType.Unknown,
-             "Asynchronous operations are not supported by this transport.");
-      }
+      public abstract Task WriteAsync(byte[] buffer, int offset, int length, CancellationToken cancellationToken);
 
-      public virtual void EndFlush(IAsyncResult asyncResult)
-      {
-         throw new TTransportException(
-             TTransportException.ExceptionType.Unknown,
-             "Asynchronous operations are not supported by this transport.");
-      }
 
-      #region " IDisposable Support "
-      // IDisposable
+      public abstract Task FlushAsync(CancellationToken cancellationToken);
+
       protected abstract void Dispose(bool disposing);
-
-      public void Dispose()
-      {
-         // Do not change this code.  Put cleanup code in Dispose(ByVal disposing As Boolean) above.
-         Dispose(true);
-         GC.SuppressFinalize(this);
-      }
-      #endregion
    }
 }
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

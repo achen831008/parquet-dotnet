@@ -65,7 +65,7 @@ namespace Parquet.Data
 
       internal override void Assign(Field field)
       {
-         if(Item != null)
+         if (Item != null)
          {
             throw new InvalidOperationException($"item was already assigned to this list ({Name}), somethin is terribly wrong because a list can only have one item.");
          }

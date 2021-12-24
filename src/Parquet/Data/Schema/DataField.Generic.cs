@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Parquet.Data
+﻿namespace Parquet.Data
 {
    /// <summary>
    /// Element of dataset's schema. Provides a helper way to construct a schema element with .NET generics.

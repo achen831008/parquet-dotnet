@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace Parquet.File.Streams
 {
@@ -42,7 +41,7 @@ namespace Parquet.File.Streams
 
       public void MarkWriteFinished()
       {
-         if(_parent is IMarkStream markStream)
+         if (_parent is IMarkStream markStream)
          {
             markStream.MarkWriteFinished();
          }

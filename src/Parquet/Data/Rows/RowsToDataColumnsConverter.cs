@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Parquet.Data.Rows
 {
@@ -21,7 +20,7 @@ namespace Parquet.Data.Rows
       {
          ProcessRows(_schema.Fields, _rows, 0, Array.Empty<LevelIndex>());
 
-         List<DataColumn> result = _schema.GetDataFields()
+         var result = _schema.GetDataFields()
             .Select(df => GetAppender(df).ToDataColumn())
             .ToList();
 
@@ -31,7 +30,7 @@ namespace Parquet.Data.Rows
       private void ProcessRows(IReadOnlyCollection<Field> fields, IReadOnlyCollection<Row> rows, int level, LevelIndex[] indexes)
       {
          int i = 0;
-         foreach(Row row in rows)
+         foreach (Row row in rows)
          {
             ProcessRow(fields, row, level, indexes.Append(new LevelIndex(level, i++)));
          }
@@ -40,7 +39,7 @@ namespace Parquet.Data.Rows
       private void ProcessRow(IReadOnlyCollection<Field> fields, Row row, int level, LevelIndex[] indexes)
       {
          int cellIndex = 0;
-         foreach(Field f in fields)
+         foreach (Field f in fields)
          {
             switch (f.SchemaType)
             {
@@ -105,7 +104,7 @@ namespace Parquet.Data.Rows
       private DataColumnAppender GetAppender(Field f)
       {
          //prepare value appender
-         if(!_pathToDataColumn.TryGetValue(f.Path, out DataColumnAppender appender))
+         if (!_pathToDataColumn.TryGetValue(f.Path, out DataColumnAppender appender))
          {
             appender = new DataColumnAppender((DataField)f);
             _pathToDataColumn[f.Path] = appender;

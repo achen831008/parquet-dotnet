@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
@@ -16,7 +15,7 @@ namespace Parquet.Serialization
       {
          if (string.IsNullOrEmpty(value))
             return string.Empty;
-         StringBuilder builder = (StringBuilder)null;
+         var builder = (StringBuilder)null;
          int startIndex = 0;
          int count = 0;
          for (int index = 0; index < value.Length; ++index)

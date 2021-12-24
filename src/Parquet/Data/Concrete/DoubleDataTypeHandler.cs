@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using Parquet.Data;
+﻿using System.IO;
 
 namespace Parquet.Data.Concrete
 {

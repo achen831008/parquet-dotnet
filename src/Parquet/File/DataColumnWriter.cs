@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Parquet.Data;
 using Parquet.File.Streams;
 using Parquet.File.Values;
@@ -43,13 +44,13 @@ namespace Parquet.File
          _rowCount = rowCount;
       }
 
-      public Thrift.ColumnChunk Write(List<string> path, DataColumn column, IDataTypeHandler dataTypeHandler)
+      public async Task<Thrift.ColumnChunk> Write(List<string> path, DataColumn column, IDataTypeHandler dataTypeHandler)
       {
          Thrift.ColumnChunk chunk = _footer.CreateColumnChunk(_compressionMethod, _stream, _schemaElement.Type, path, 0);
          Thrift.PageHeader ph = _footer.CreateDataPage(column.Data.Length);
          _footer.GetLevels(chunk, out int maxRepetitionLevel, out int maxDefinitionLevel);
 
-         List<PageTag> pages = WriteColumn(column, _schemaElement, dataTypeHandler, maxRepetitionLevel, maxDefinitionLevel);
+         List<PageTag> pages = await WriteColumn(column, _schemaElement, dataTypeHandler, maxRepetitionLevel, maxDefinitionLevel);
          //generate stats for column chunk
          chunk.Meta_data.Statistics = column.Statistics.ToThriftStatistics(dataTypeHandler, _schemaElement);
 
@@ -65,7 +66,7 @@ namespace Parquet.File
          return chunk;
       }
 
-      private List<PageTag> WriteColumn(DataColumn column,
+      private async Task<List<PageTag>> WriteColumn(DataColumn column,
          Thrift.SchemaElement tse,
          IDataTypeHandler dataTypeHandler,
          int maxRepetitionLevel,
@@ -94,7 +95,7 @@ namespace Parquet.File
                      WriteLevels(writer, column.RepetitionLevels, column.RepetitionLevels.Length, maxRepetitionLevel);
                   }
 
-                  ArrayView data = new ArrayView(column.Data);
+                  var data = new ArrayView(column.Data);
 
                   if (maxDefinitionLevel > 0)
                   {
@@ -134,7 +135,7 @@ namespace Parquet.File
 
             //write the header in
             dataPageHeader.Data_page_header.Statistics = column.Statistics.ToThriftStatistics(dataTypeHandler, _schemaElement);
-            int headerSize = _thriftStream.Write(dataPageHeader);
+            int headerSize = await _thriftStream.WriteAsync(dataPageHeader);
             ms.Position = 0;
             ms.CopyTo(_stream);
 

@@ -1,4 +1,4 @@
-# Getting started with Parquet development
+# Getting started with Parquet Development
 
 If you are a complete novice to Parquet we would recommend starting with these documents:
 
@@ -27,3 +27,12 @@ There are already working implementations in other languages we find useful to c
 
 [Snappy Sharp](https://github.com/jeffesp/Snappy.Sharp) was used to compress and decompress via Snappy Algorithm. It is now replaced by my own implementation [IronSnappy](https://github.com/aloneguid/IronSnappy).
 
+## Thrift
+
+Parquet encodes file headers with [Thrift](https://thrift.apache.org/). You can `scoop install thrift` and regenerate specs from the [specs repo](https://github.com/apache/parquet-format):
+
+```bash
+src> thrift.exe --gen netstd:no_deepcopy --out . .\Parquet\Thrift\parquet.thrift
+```
+
+There's a fair amount of cosmetic clean-up as official generator is really bad.
