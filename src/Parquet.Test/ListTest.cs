@@ -1,4 +1,5 @@
-﻿using Parquet.Data;
+﻿using System.Threading.Tasks;
+using Parquet.Data;
 using Xunit;
 
 namespace Parquet.Test
@@ -6,7 +7,7 @@ namespace Parquet.Test
    public class ListTest : TestBase
    {
       [Fact]
-      public void List_of_structures_writes_reads()
+      public async Task List_of_structures_writes_reads()
       {
          var idsch = new DataField<int>("id");
          var cnamech = new DataField<string>("name");
@@ -23,11 +24,11 @@ namespace Parquet.Test
          var cname = new DataColumn(cnamech, new[] { "London", "New York" }, new[] { 0, 1 });
          var ccountry = new DataColumn(ccountrych, new[] { "UK", "US" }, new[] { 0, 1 });
 
-         DataColumn[] readColumns = WriteReadSingleRowGroup(schema, new[] { id, cname, ccountry }, out Schema readSchema);
+         (DataColumn[] readColumns, Schema readSchema) = await WriteReadSingleRowGroup(schema, new[] { id, cname, ccountry });
       }
 
       [Fact]
-      public void List_of_elements_with_some_items_empty_reads_file()
+      public async Task List_of_elements_with_some_items_empty_reads_file()
       {
          /*
           list data:
@@ -37,18 +38,18 @@ namespace Parquet.Test
           - 4: []
           */
 
-         using (var reader = new ParquetReader(OpenTestFile("list_empty_alt.parquet")))
+         using (ParquetReader reader = await ParquetReader.Open(OpenTestFile("list_empty_alt.parquet")))
          {
             using (ParquetRowGroupReader groupReader = reader.OpenRowGroupReader(0))
             {
                Assert.Equal(4, groupReader.RowCount);
                DataField[] fs = reader.Schema.GetDataFields();
 
-               DataColumn id = groupReader.ReadColumn(fs[0]);
+               DataColumn id = await groupReader.ReadColumn(fs[0]);
                Assert.Equal(4, id.Data.Length);
                Assert.False(id.HasRepetitions);
 
-               DataColumn list = groupReader.ReadColumn(fs[1]);
+               DataColumn list = await groupReader.ReadColumn(fs[1]);
                Assert.Equal(8, list.Data.Length);
                Assert.Equal(new int[] { 0, 1, 1, 0, 0, 1, 1, 0 }, list.RepetitionLevels);
             }

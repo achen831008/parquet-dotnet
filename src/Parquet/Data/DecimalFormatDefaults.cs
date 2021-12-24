@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Parquet.Data
+﻿namespace Parquet.Data
 {
    /// <summary>
    /// Pre-defined decimal handling default values; providing backwards compatibility prior to v3.9 where these were made configurable.

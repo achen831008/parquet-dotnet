@@ -1,9 +1,10 @@
-﻿using Parquet.File;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Parquet.Data;
 using Parquet.Data.Rows;
+using Parquet.File;
 
 namespace Parquet
 {
@@ -13,8 +14,8 @@ namespace Parquet
    public class ParquetReader : ParquetActor, IDisposable
    {
       private readonly Stream _input;
-      private readonly Thrift.FileMetaData _meta;
-      private readonly ThriftFooter _footer;
+      private Thrift.FileMetaData _meta;
+      private ThriftFooter _footer;
       private readonly ParquetOptions _parquetOptions;
       private readonly List<ParquetRowGroupReader> _groupReaders = new List<ParquetRowGroupReader>();
       private readonly bool _leaveStreamOpen;
@@ -23,6 +24,15 @@ namespace Parquet
       {
          _input = input ?? throw new ArgumentNullException(nameof(input));
          _leaveStreamOpen = leaveStreamOpen;
+      }
+
+      private ParquetReader(Stream input, ParquetOptions parquetOptions = null, bool leaveStreamOpen = true) : this(input, leaveStreamOpen)
+      {
+         if (!input.CanRead || !input.CanSeek) throw new ArgumentException("stream must be readable and seekable", nameof(input));
+         if (_input.Length <= 8) throw new IOException("not a Parquet file (size too small)");
+
+         ValidateFile();
+         _parquetOptions = parquetOptions ?? new ParquetOptions();
       }
 
       /// <summary>
@@ -34,21 +44,17 @@ namespace Parquet
       /// <exception cref="ArgumentNullException">input</exception>
       /// <exception cref="ArgumentException">stream must be readable and seekable - input</exception>
       /// <exception cref="IOException">not a Parquet file (size too small)</exception>
-      public ParquetReader(Stream input, ParquetOptions parquetOptions = null, bool leaveStreamOpen = true) : this(input, leaveStreamOpen)
+      public static async Task<ParquetReader> Open(Stream input, ParquetOptions parquetOptions = null, bool leaveStreamOpen = true)
       {
-         if (!input.CanRead || !input.CanSeek) throw new ArgumentException("stream must be readable and seekable", nameof(input));
-         if (_input.Length <= 8) throw new IOException("not a Parquet file (size too small)");
-
-         ValidateFile();
-         _parquetOptions = parquetOptions ?? new ParquetOptions();
+         var reader = new ParquetReader(input, parquetOptions, leaveStreamOpen);
 
          //read metadata instantly, now
-         _meta = ReadMetadata();
-         _footer = new ThriftFooter(_meta);
+         reader._meta = await reader.ReadMetadata();
+         reader._footer = new ThriftFooter(reader._meta);
 
-         ParquetEventSource.Current.OpenStream(input.Length, leaveStreamOpen, _meta.Row_groups.Count, _meta.Num_rows);
+         reader.InitRowGroupReaders();
 
-         InitRowGroupReaders();
+         return reader;
       }
 
       /// <summary>
@@ -57,11 +63,11 @@ namespace Parquet
       /// <param name="filePath"></param>
       /// <param name="parquetOptions"></param>
       /// <returns></returns>
-      public static ParquetReader OpenFromFile(string filePath, ParquetOptions parquetOptions = null)
+      public static async Task<ParquetReader> OpenFromFile(string filePath, ParquetOptions parquetOptions = null)
       {
          Stream fs = System.IO.File.OpenRead(filePath);
 
-         return new ParquetReader(fs, parquetOptions, false);
+         return await Open(fs, parquetOptions, false);
       }
 
       /// <summary>
@@ -75,22 +81,22 @@ namespace Parquet
       /// <summary>
       /// Reads entire file as a table
       /// </summary>
-      public static Table ReadTableFromFile(string filePath, ParquetOptions parquetOptions = null)
+      public static async Task<Table> ReadTableFromFile(string filePath, ParquetOptions parquetOptions = null)
       {
-         using (ParquetReader reader = OpenFromFile(filePath, parquetOptions))
+         using (ParquetReader reader = await OpenFromFile(filePath, parquetOptions))
          {
-            return reader.ReadAsTable();
+            return await reader.ReadAsTable();
          }
       }
 
       /// <summary>
       /// Reads entire stream as a table
       /// </summary>
-      public static Table ReadTableFromStream(Stream stream, ParquetOptions parquetOptions = null)
+      public static async Task<Table> ReadTableFromStream(Stream stream, ParquetOptions parquetOptions = null)
       {
-         using (var reader = new ParquetReader(stream, parquetOptions))
+         using (ParquetReader reader = await Open(stream, parquetOptions))
          {
-            return reader.ReadAsTable();
+            return await reader.ReadAsTable();
          }
       }
 
@@ -109,7 +115,7 @@ namespace Parquet
       /// <summary>
       /// Internal parquet metadata
       /// </summary>
-      public Thrift.FileMetaData ThriftMetadata => _meta;
+      internal Thrift.FileMetaData ThriftMetadata => _meta;
 
       /// <summary>
       /// 
@@ -126,16 +132,16 @@ namespace Parquet
       /// </summary>
       /// <param name="rowGroupIndex">Index of the row group. Default to the first row group if not specified.</param>
       /// <returns></returns>
-      public DataColumn[] ReadEntireRowGroup(int rowGroupIndex = 0)
+      public async Task<DataColumn[]> ReadEntireRowGroup(int rowGroupIndex = 0)
       {
          DataField[] dataFields = Schema.GetDataFields();
-         DataColumn[] result = new DataColumn[dataFields.Length];
+         var result = new DataColumn[dataFields.Length];
 
          using (ParquetRowGroupReader reader = OpenRowGroupReader(rowGroupIndex))
          {
             for (int i = 0; i < dataFields.Length; i++)
             {
-               DataColumn column = reader.ReadColumn(dataFields[i]);
+               DataColumn column = await reader.ReadColumn(dataFields[i]);
                result[i] = column;
             }
          }
@@ -147,7 +153,7 @@ namespace Parquet
       {
          _groupReaders.Clear();
 
-         foreach(Thrift.RowGroup thriftRowGroup in _meta.Row_groups)
+         foreach (Thrift.RowGroup thriftRowGroup in _meta.Row_groups)
          {
             _groupReaders.Add(new ParquetRowGroupReader(thriftRowGroup, _footer, Stream, ThriftStream, _parquetOptions));
          }
@@ -158,7 +164,7 @@ namespace Parquet
       /// </summary>
       public void Dispose()
       {
-         if(!_leaveStreamOpen)
+         if (!_leaveStreamOpen)
          {
             _input.Dispose();
          }

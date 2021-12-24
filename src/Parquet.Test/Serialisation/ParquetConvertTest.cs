@@ -1,7 +1,8 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Parquet.Attributes;
 using Parquet.Data;
 using Parquet.Serialization;
@@ -12,7 +13,7 @@ namespace Parquet.Test.Serialisation
    public class ParquetConvertTest : TestBase
    {
       [Fact]
-      public void Serialise_Should_Exclude_IgnoredProperties_while_serialized_to_parquetfile()
+      public async Task Serialise_Should_Exclude_IgnoredProperties_while_serialized_to_parquetfile()
       {
          DateTime now = DateTime.Now;
 
@@ -33,11 +34,11 @@ namespace Parquet.Test.Serialisation
 
          using (var ms = new MemoryStream())
          {
-            Schema schema = ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
+            Schema schema = await ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
 
             ms.Position = 0;
 
-            StructureWithIgnoredProperties[] structures2 = ParquetConvert.Deserialize<StructureWithIgnoredProperties>(ms);
+            StructureWithIgnoredProperties[] structures2 = await ParquetConvert.Deserialize<StructureWithIgnoredProperties>(ms);
 
             StructureWithIgnoredProperties[] structuresArray = structures.ToArray();
             Func<Type, Object> GetDefaultValue = (type) => type.IsValueType ? Activator.CreateInstance(type) : null;
@@ -60,7 +61,7 @@ namespace Parquet.Test.Serialisation
       }
 
       [Fact]
-      public void Serialise_deserialise_all_types()
+      public async Task Serialise_deserialise_all_types()
       {
          DateTime now = DateTime.Now;
 
@@ -76,11 +77,11 @@ namespace Parquet.Test.Serialisation
 
          using (var ms = new MemoryStream())
          {
-            Schema schema = ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
+            Schema schema = await ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
 
             ms.Position = 0;
 
-            SimpleStructure[] structures2 = ParquetConvert.Deserialize<SimpleStructure>(ms);
+            SimpleStructure[] structures2 = await ParquetConvert.Deserialize<SimpleStructure>(ms);
 
             SimpleStructure[] structuresArray = structures.ToArray();
             for (int i = 0; i < 10; i++)
@@ -94,7 +95,7 @@ namespace Parquet.Test.Serialisation
       }
 
       [Fact]
-      public void Serialize_append_deserialise()
+      public async Task Serialize_append_deserialise()
       {
          DateTime now = DateTime.Now;
 
@@ -120,13 +121,13 @@ namespace Parquet.Test.Serialisation
 
          using (var ms = new MemoryStream())
          {
-            ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
+            await ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
 
-            ParquetConvert.Serialize(appendStructures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2, append: true);
+            await ParquetConvert.Serialize(appendStructures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2, append: true);
 
             ms.Position = 0;
 
-            SimpleStructure[] structures2 = ParquetConvert.Deserialize<SimpleStructure>(ms);
+            SimpleStructure[] structures2 = await ParquetConvert.Deserialize<SimpleStructure>(ms);
 
             SimpleStructure[] structuresArray = structures.Concat(appendStructures).ToArray();
 
@@ -142,7 +143,7 @@ namespace Parquet.Test.Serialisation
       }
 
       [Fact]
-      public void Serialise_deserialise_renamed_column()
+      public async Task Serialise_deserialise_renamed_column()
       {
          IEnumerable<SimpleRenamed> structures = Enumerable
             .Range(0, 10)
@@ -155,11 +156,11 @@ namespace Parquet.Test.Serialisation
 
          using (var ms = new MemoryStream())
          {
-            Schema schema = ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
+            Schema schema = await ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
 
             ms.Position = 0;
 
-            SimpleRenamed[] structures2 = ParquetConvert.Deserialize<SimpleRenamed>(ms);
+            SimpleRenamed[] structures2 = await ParquetConvert.Deserialize<SimpleRenamed>(ms);
 
             var formatDecimal = new Func<decimal?, decimal?>(d => d.HasValue
                ? Math.Round(d.Value, 18, MidpointRounding.ToZero)
@@ -176,7 +177,7 @@ namespace Parquet.Test.Serialisation
          }
       }
       [Fact]
-      public void Serialise_all_but_deserialise_only_few_properties()
+      public async Task Serialise_all_but_deserialise_only_few_properties()
       {
          DateTime now = DateTime.Now;
 
@@ -192,7 +193,7 @@ namespace Parquet.Test.Serialisation
 
          using (var ms = new MemoryStream())
          {
-            Schema schema = ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
+            Schema schema = await ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
 
             ms.Position = 0;
 
@@ -200,7 +201,7 @@ namespace Parquet.Test.Serialisation
             int rowGroupCount = 5; //based on our test input. 10 records with rowgroup size 2.
             for (int r = 0; r < rowGroupCount; r++)
             {
-               SimpleStructureWithFewProperties[] rowGroupRecords = ParquetConvert.Deserialize<SimpleStructureWithFewProperties>(ms, rowGroupIndex: r);
+               SimpleStructureWithFewProperties[] rowGroupRecords = await ParquetConvert.Deserialize<SimpleStructureWithFewProperties>(ms, rowGroupIndex: r);
                Assert.Equal(2, rowGroupRecords.Length);
 
                Assert.Equal(structuresArray[2 * r].Id, rowGroupRecords[0].Id);
@@ -209,12 +210,12 @@ namespace Parquet.Test.Serialisation
                Assert.Equal(structuresArray[2 * r + 1].Name, rowGroupRecords[1].Name);
 
             }
-            Assert.Throws<ArgumentOutOfRangeException>("index", () => ParquetConvert.Deserialize<SimpleStructure>(ms, 5));
-            Assert.Throws<ArgumentOutOfRangeException>("index", () => ParquetConvert.Deserialize<SimpleStructure>(ms, 99999));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>("index", () => ParquetConvert.Deserialize<SimpleStructure>(ms, 5));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>("index", () => ParquetConvert.Deserialize<SimpleStructure>(ms, 99999));
          }
       }
       [Fact]
-      public void Serialise_read_and_deserialise_by_rowgroup()
+      public async Task Serialise_read_and_deserialise_by_rowgroup()
       {
          DateTime now = DateTime.Now;
 
@@ -230,7 +231,7 @@ namespace Parquet.Test.Serialisation
 
          using (var ms = new MemoryStream())
          {
-            Schema schema = ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
+            Schema schema = await ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
 
             ms.Position = 0;
 
@@ -238,7 +239,7 @@ namespace Parquet.Test.Serialisation
             int rowGroupCount = 5; //based on our test input. 10 records with rowgroup size 2.
             for(int r = 0; r < rowGroupCount; r++)
             {
-               SimpleStructure[] rowGroupRecords = ParquetConvert.Deserialize<SimpleStructure>(ms, rowGroupIndex: r);
+               SimpleStructure[] rowGroupRecords = await ParquetConvert.Deserialize<SimpleStructure>(ms, rowGroupIndex: r);
                Assert.Equal(2, rowGroupRecords.Length);
 
                Assert.Equal(structuresArray[2*r].Id, rowGroupRecords[0].Id);
@@ -251,13 +252,13 @@ namespace Parquet.Test.Serialisation
                Assert.Equal(structuresArray[2*r+1].Date, rowGroupRecords[1].Date);
 
             }
-            Assert.Throws<ArgumentOutOfRangeException>("index",() => ParquetConvert.Deserialize<SimpleStructure>(ms, 5));
-            Assert.Throws<ArgumentOutOfRangeException>("index",() => ParquetConvert.Deserialize<SimpleStructure>(ms, 99999));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>("index",() => ParquetConvert.Deserialize<SimpleStructure>(ms, 5));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>("index",() => ParquetConvert.Deserialize<SimpleStructure>(ms, 99999));
          }
       }
 
       [Fact]
-      public void Serialize_deserialize_repeated_field()
+      public async Task Serialize_deserialize_repeated_field()
       {
          IEnumerable<SimpleRepeated> structures = Enumerable
             .Range(0, 10)
@@ -279,7 +280,7 @@ namespace Parquet.Test.Serialisation
       }
 
       [Fact]
-      public void Serialize_deserialize_empty_enumerable()
+      public async Task Serialize_deserialize_empty_enumerable()
       {
          IEnumerable<SimpleRepeated> structures = Enumerable.Empty<SimpleRepeated>();
 
@@ -289,20 +290,20 @@ namespace Parquet.Test.Serialisation
       }
 
       [Fact]
-      public void Serialize_structure_with_DateTime()
+      public async Task Serialize_structure_with_DateTime()
       {
-         TestRoundTripSerialization<DateTime>(DateTime.UtcNow.RoundToSecond());
+         await TestRoundTripSerialization<DateTime>(DateTime.UtcNow.RoundToSecond());
       }
 
       [Fact]
-      public void Serialize_structure_with_nullable_DateTime()
+      public async Task Serialize_structure_with_nullable_DateTime()
       {
-         TestRoundTripSerialization<DateTime?>(DateTime.UtcNow.RoundToSecond());
-         TestRoundTripSerialization<DateTime?>(null);
+         await TestRoundTripSerialization<DateTime?>(DateTime.UtcNow.RoundToSecond());
+         await TestRoundTripSerialization<DateTime?>(null);
       }
 
       [Fact]
-      public void Serialise_groups()
+      public async Task Serialise_groups()
       {
          DateTime now = DateTime.Now;
 
@@ -318,11 +319,11 @@ namespace Parquet.Test.Serialisation
 
          using (var ms = new MemoryStream())
          {
-            Schema schema = ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
+            Schema schema = await ParquetConvert.Serialize(structures, ms, compressionMethod: CompressionMethod.Snappy, rowGroupSize: 2);
 
             ms.Position = 0;
 
-            SimpleStructure[/*Groups*/][] groups2 = ParquetConvert.DeserializeGroups<SimpleStructure>(ms).ToArray();
+            SimpleStructure[][] groups2 = await ParquetConvert.DeserializeGroups<SimpleStructure>(ms).ToArray();
             Assert.Equal(10/2, groups2.Length); //groups = count/rowGroupSize
 
             SimpleStructure[] structuresArray = structures.ToArray();
@@ -343,7 +344,7 @@ namespace Parquet.Test.Serialisation
          }
       }
 
-      void TestRoundTripSerialization<T>(T value)
+      async Task TestRoundTripSerialization<T>(T value)
       {
          StructureWithTestType<T> input = new StructureWithTestType<T>
          {
@@ -355,10 +356,10 @@ namespace Parquet.Test.Serialisation
 
          using (MemoryStream stream = new MemoryStream())
          {
-            ParquetConvert.Serialize<StructureWithTestType<T>>(new StructureWithTestType<T>[] { input }, stream, schema);
+            await ParquetConvert.Serialize<StructureWithTestType<T>>(new StructureWithTestType<T>[] { input }, stream, schema);
 
             stream.Position = 0;
-            StructureWithTestType<T>[] output = ParquetConvert.Deserialize<StructureWithTestType<T>>(stream);
+            StructureWithTestType<T>[] output = await ParquetConvert.Deserialize<StructureWithTestType<T>>(stream);
             Assert.Single(output);
             Assert.Equal("1", output[0].Id);
             Assert.Equal(value, output[0].TestValue);
@@ -435,3 +436,4 @@ namespace Parquet.Test.Serialisation
       }
    }
 }
+*/

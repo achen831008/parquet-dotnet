@@ -251,11 +251,11 @@ namespace Parquet.Test
       }
 
       [Fact]
-      public void BackwardCompat_list_with_one_array()
+      public async void BackwardCompat_list_with_one_array()
       {
          using (Stream input = OpenTestFile("legacy-list-onearray.parquet"))
          {
-            using (var reader = new ParquetReader(input))
+            using (ParquetReader reader = await ParquetReader.Open(input))
             {
                Schema schema = reader.Schema;
 
@@ -268,7 +268,7 @@ namespace Parquet.Test
                //smoke test we can read it
                using (ParquetRowGroupReader rg = reader.OpenRowGroupReader(0))
                {
-                  DataColumn values4 = rg.ReadColumn((DataField)schema[4]);
+                  DataColumn values4 = await rg.ReadColumn((DataField)schema[4]);
                }
             }
          }

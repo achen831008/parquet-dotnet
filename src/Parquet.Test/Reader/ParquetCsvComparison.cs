@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 using F = System.IO.File;
 using Path = System.IO.Path;
@@ -16,9 +17,9 @@ namespace Parquet.Test.Reader
 {
    public class ParquetCsvComparison : TestBase
    {
-      protected void CompareFiles(string baseName, string encoding, bool treatByteArrayAsString, params Type[] columnTypes)
+      protected async Task CompareFiles(string baseName, string encoding, bool treatByteArrayAsString, params Type[] columnTypes)
       {
-         DataColumn[] parquet = ReadParquet($"{baseName}.{encoding}.parquet", treatByteArrayAsString);
+         DataColumn[] parquet = await ReadParquet($"{baseName}.{encoding}.parquet", treatByteArrayAsString);
          DataColumn[] csv = ReadCsv($"{baseName}.csv");
          Compare(parquet, csv, columnTypes);
       }
@@ -103,17 +104,17 @@ namespace Parquet.Test.Reader
          return Convert.ChangeType(v, t);
       }
 
-      private DataColumn[] ReadParquet(string name, bool treatByteArrayAsString)
+      private async Task<DataColumn[]> ReadParquet(string name, bool treatByteArrayAsString)
       {
          using (Stream s = OpenTestFile(name))
          {
-            using (var pr = new ParquetReader(s, new ParquetOptions { TreatByteArrayAsString = treatByteArrayAsString }))
+            using (ParquetReader pr = await ParquetReader.Open(
+               s, new ParquetOptions { TreatByteArrayAsString = treatByteArrayAsString }))
             {
                using (ParquetRowGroupReader rgr = pr.OpenRowGroupReader(0))
                {
-                  return pr.Schema.GetDataFields()
-                     .Select(df => rgr.ReadColumn(df))
-                     .ToArray();
+
+                  return await Task.WhenAll(pr.Schema.GetDataFields().Select(df => rgr.ReadColumn(df)));
                }
             }
          }

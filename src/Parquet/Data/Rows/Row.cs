@@ -292,16 +292,16 @@ namespace Parquet.Data.Rows
          {
             sb.AppendNull(sf);
          }
-         else if(f != null)
+         else if (f != null)
          {
             switch (f.SchemaType)
             {
                case SchemaType.Data:
-                  DataField df = (DataField)f;
-                  if(df.IsArray)
+                  var df = (DataField)f;
+                  if (df.IsArray)
                   {
                      sb.StartArray(sf, level);
-                     foreach(object vb in (IEnumerable)v)
+                     foreach (object vb in (IEnumerable)v)
                      {
                         if (first)
                            first = false;
@@ -321,7 +321,7 @@ namespace Parquet.Data.Rows
                   break;
 
                case SchemaType.Struct:
-                  StructField stf = (StructField)f;
+                  var stf = (StructField)f;
                   if (!(v is Row sRow))
                   {
                      //throw new FormatException($"expected {typeof(Row)} at {f.Path} but found {v.GetType()}");
@@ -333,9 +333,9 @@ namespace Parquet.Data.Rows
                   break;
 
                case SchemaType.Map:
-                  MapField mf = (MapField)f;
+                  var mf = (MapField)f;
                   sb.StartArray(sf, level);
-                  foreach(Row row in (IEnumerable)v)
+                  foreach (Row row in (IEnumerable)v)
                   {
                      if (first)
                         first = false;
@@ -348,9 +348,9 @@ namespace Parquet.Data.Rows
                   break;
 
                case SchemaType.List:
-                  ListField lf = (ListField)f;
+                  var lf = (ListField)f;
                   sb.StartArray(sf, level);
-                  foreach(object le in (IEnumerable)v)
+                  foreach (object le in (IEnumerable)v)
                   {
                      if (first)
                         first = false;
@@ -383,7 +383,7 @@ namespace Parquet.Data.Rows
                return new[] { ((ListField)f).Item };
 
             case SchemaType.Map:
-               MapField mf = (MapField)f;
+               var mf = (MapField)f;
                return new[] { mf.Key, mf.Value };
 
             case SchemaType.Struct:
@@ -409,7 +409,7 @@ namespace Parquet.Data.Rows
       {
          if (Values.Length != other.Values.Length)
          {
-            if(throwException)
+            if (throwException)
             {
                throw new ArgumentException($"values count is different ({Values.Length} != {other.Values.Length})");
             }
@@ -417,12 +417,12 @@ namespace Parquet.Data.Rows
             return false;
          }
 
-         for(int i = 0; i < Values.Length; i++)
+         for (int i = 0; i < Values.Length; i++)
          {
             object v = Values[i];
             object ov = other.Values[i];
 
-            if(!Equal(v, ov, i, throwException))
+            if (!Equal(v, ov, i, throwException))
             {
                return false;
             }

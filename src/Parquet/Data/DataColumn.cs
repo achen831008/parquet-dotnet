@@ -104,7 +104,7 @@ namespace Parquet.Data
 
       internal long CalculateRowCount()
       {
-         if(Field.MaxRepetitionLevel > 0)
+         if (Field.MaxRepetitionLevel > 0)
          {
             return RepetitionLevels.Count(rl => rl == 0);
          }

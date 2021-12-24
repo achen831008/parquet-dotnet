@@ -13,7 +13,7 @@ namespace Parquet.File
       {
          _key = key;
       }
-      
+
       public override bool Equals(object obj)
       {
          return obj is StringListComparer s && Equals(s);
@@ -39,7 +39,7 @@ namespace Parquet.File
          {
             string a = _key[i];
             string b = other._key[i];
-            if (string.CompareOrdinal(a,b) != 0)
+            if (string.CompareOrdinal(a, b) != 0)
                return false;
          }
 

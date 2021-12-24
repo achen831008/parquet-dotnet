@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using Parquet.Data;
 
 namespace Parquet.Data.Concrete
 {
@@ -55,7 +51,7 @@ namespace Parquet.Data.Concrete
          container.Add(keyValue);
 
          //now add the key and value separately
-         MapField mapField = field as MapField;
+         var mapField = field as MapField;
          IDataTypeHandler keyHandler = DataTypeFactory.Match(mapField.Key);
          IDataTypeHandler valueHandler = DataTypeFactory.Match(mapField.Value);
 

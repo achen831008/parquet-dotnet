@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using Parquet.Data;
+﻿using System.IO;
 
 namespace Parquet.Data.Concrete
 {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Parquet.Data;
 
 namespace Parquet.Data.Concrete
 {
@@ -13,12 +12,12 @@ namespace Parquet.Data.Concrete
 
       protected override short ReadSingle(BinaryReader reader, Thrift.SchemaElement tse, int length)
       {
-         return (short) reader.ReadInt32();
+         return (short)reader.ReadInt32();
       }
 
       protected override void WriteOne(BinaryWriter writer, short value)
       {
-         writer.Write((int) value);
+         writer.Write((int)value);
       }
    }
 }

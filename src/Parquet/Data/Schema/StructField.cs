@@ -18,14 +18,14 @@ namespace Parquet.Data
       /// <param name="elements">List of elements</param>
       public StructField(string name, params Field[] elements) : this(name)
       {
-         if(elements == null || elements.Length == 0)
+         if (elements == null || elements.Length == 0)
          {
             throw new ArgumentException($"structure '{name}' requires at least one element");
          }
 
          //path for structures has no weirdnes, yay!
 
-         foreach(Field field in elements)
+         foreach (Field field in elements)
          {
             _fields.Add(field);
          }
@@ -40,7 +40,7 @@ namespace Parquet.Data
          {
             Path = value.AddPath(Name);
 
-            foreach(Field field in _fields)
+            foreach (Field field in _fields)
             {
                field.PathPrefix = Path;
             }
@@ -51,7 +51,7 @@ namespace Parquet.Data
       {
          //struct is a container, it doesn't have any levels
 
-         foreach(Field f in Fields)
+         foreach (Field f in Fields)
          {
             f.PropagateLevels(parentRepetitionLevel, parentDefinitionLevel);
          }
@@ -89,7 +89,7 @@ namespace Parquet.Data
 
          if (Name != other.Name) return false;
          if (Fields.Count != other.Fields.Count) return false;
-         for(int i = 0; i < Fields.Count; i++)
+         for (int i = 0; i < Fields.Count; i++)
          {
             if (!Fields[i].Equals(other.Fields[i])) return false;
          }

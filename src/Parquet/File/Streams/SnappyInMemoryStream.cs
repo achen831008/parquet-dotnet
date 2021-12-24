@@ -21,7 +21,7 @@ namespace Parquet.File.Streams
          _parent = parent;
          _compressionMode = compressionMode;
 
-         if(compressionMode == CompressionMode.Compress)
+         if (compressionMode == CompressionMode.Compress)
          {
             _ms = new MemoryStream();
          }
@@ -45,7 +45,7 @@ namespace Parquet.File.Streams
       {
          if (_finishedForWriting) return;
 
-         if(_compressionMode == CompressionMode.Compress)
+         if (_compressionMode == CompressionMode.Compress)
          {
             byte[] compressed = Snappy.Encode(_ms.ToArray());
             _parent.Write(compressed, 0, compressed.Length);
@@ -92,7 +92,7 @@ namespace Parquet.File.Streams
 
       public override void Flush()
       {
-         
+
       }
    }
 }

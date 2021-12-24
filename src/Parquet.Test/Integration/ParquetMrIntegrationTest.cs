@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Parquet.Data;
 using Parquet.Data.Rows;
 using Xunit;
@@ -30,7 +31,7 @@ namespace Parquet.Test.Integration
             : "java";
       }
 
-      private void CompareWithMr(Table t)
+      private async Task CompareWithMr(Table t)
       {
          string testFileName = Path.GetFullPath("temp.parquet");
 
@@ -40,14 +41,14 @@ namespace Parquet.Test.Integration
          //produce file
          using (Stream s = F.OpenWrite(testFileName))
          {
-            using (var writer = new ParquetWriter(t.Schema, s))
+            using (ParquetWriter writer = await ParquetWriter.Open(t.Schema, s))
             {
-               writer.Write(t);
+               await writer.Write(t);
             }
          }
 
          //read back
-         Table t2 = ParquetReader.ReadTableFromFile(testFileName);
+         Table t2 = await ParquetReader.ReadTableFromFile(testFileName);
 
          //check we don't have a bug internally before launching MR
          Assert.Equal(t.ToString("j"), t2.ToString("j"), ignoreLineEndingDifferences: true);

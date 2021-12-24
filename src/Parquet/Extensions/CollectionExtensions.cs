@@ -96,7 +96,7 @@ namespace Parquet
          {
             bool canMove = _first.MoveNext() && (_second == null || _second.MoveNext());
 
-            if(canMove)
+            if (canMove)
             {
                Current = new Tuple<TFirst, TSecond>(_first.Current, _second == null ? default(TSecond) : _second.Current);
             }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Parquet.Data.Rows
 {
@@ -36,7 +34,7 @@ namespace Parquet.Data.Rows
          if ((_position + 1) >= _data.Length)
             return false;
 
-         if(_isRepeated)
+         if (_isRepeated)
          {
             int read = Read(_position + 1, out object current);
 
@@ -60,7 +58,7 @@ namespace Parquet.Data.Rows
          var result = new TreeList(null);
          TreeList current = result;
 
-         while(position < _data.Length)
+         while (position < _data.Length)
          {
             int rl = _rls[position];
 
@@ -71,7 +69,7 @@ namespace Parquet.Data.Rows
 
             int lmv = rl - prl;
 
-            if(lmv != 0)
+            if (lmv != 0)
             {
                current = current.Submerge(lmv);
             }
@@ -86,7 +84,7 @@ namespace Parquet.Data.Rows
 
          cr = result.FinalValue(_field.ClrNullableIfHasNullsType);
 
-         if(cr == null)
+         if (cr == null)
          {
             cr = Array.CreateInstance(_field.ClrNullableIfHasNullsType, 0);
          }

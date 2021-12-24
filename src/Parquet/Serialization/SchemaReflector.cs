@@ -62,7 +62,7 @@ namespace Parquet.Serialization
       private Field GetField(PropertyInfo property)
       {
          Type pt = property.PropertyType;
-         if(pt.IsNullable()) pt = pt.GetNonNullable();
+         if (pt.IsNullable()) pt = pt.GetNonNullable();
          if (pt.IsArray) pt = pt.GetElementType();
 
          IDataTypeHandler handler = DataTypeFactory.Match(pt);

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Parquet.Data;
 
 namespace Parquet.Serialization.Values
@@ -24,7 +22,7 @@ namespace Parquet.Serialization.Values
 
          return ClassType.Equals(other.ClassType) && Field.Equals(other.Field);
       }
-      
+
       public override int GetHashCode()
       {
          return 31 * ClassType.GetHashCode() + Field.GetHashCode();

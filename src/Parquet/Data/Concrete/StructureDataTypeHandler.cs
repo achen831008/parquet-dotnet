@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 
 namespace Parquet.Data.Concrete
 {
@@ -20,9 +17,9 @@ namespace Parquet.Data.Concrete
 
       public override void CreateThrift(Field field, Thrift.SchemaElement parent, IList<Thrift.SchemaElement> container)
       {
-         StructField structField = (StructField)field;
+         var structField = (StructField)field;
 
-         Thrift.SchemaElement tseStruct = new Thrift.SchemaElement(field.Name)
+         var tseStruct = new Thrift.SchemaElement(field.Name)
          {
             Repetition_type = Thrift.FieldRepetitionType.OPTIONAL,
          };

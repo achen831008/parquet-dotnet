@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using Parquet.Data;
 using Parquet.File.Values.Primitives;
 
 namespace Parquet.Data.Concrete
@@ -30,7 +27,7 @@ namespace Parquet.Data.Concrete
          int typeLength = tse.Type_length;
          if (typeLength == 0) return 0;
          int idx = offset;
-         Interval[] tdest = (Interval[])dest;
+         var tdest = (Interval[])dest;
 
          while (reader.BaseStream.Position + 12 <= reader.BaseStream.Length)
          {
@@ -56,7 +53,7 @@ namespace Parquet.Data.Concrete
 
       public override void Write(Thrift.SchemaElement tse, BinaryWriter writer, ArrayView values, DataColumnStatistics statistics)
       {
-         foreach(Interval interval in values.GetValuesAndReturnArray<Interval>())
+         foreach (Interval interval in values.GetValuesAndReturnArray<Interval>())
          {
             writer.Write(interval.Months);
             writer.Write(interval.Days);

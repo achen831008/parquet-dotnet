@@ -34,7 +34,7 @@ namespace Parquet.File.Values.Primitives
          Precision = schema.Precision;
          Scale = schema.Scale;
 
-         BigInteger scaleMultiplier = BigInteger.Pow(10, Scale);
+         var scaleMultiplier = BigInteger.Pow(10, Scale);
          decimal ipScaled = (decimal)BigInteger.DivRem(UnscaledValue, scaleMultiplier, out BigInteger fpUnscaled);
          decimal fpScaled = (decimal)fpUnscaled / (decimal)scaleMultiplier;
 
@@ -47,8 +47,8 @@ namespace Parquet.File.Values.Primitives
          Precision = precision;
          Scale = scale;
 
-         BigInteger scaleMultiplier = BigInteger.Pow(10, scale);
-         BigInteger bscaled = new BigInteger(d);
+         var scaleMultiplier = BigInteger.Pow(10, scale);
+         var bscaled = new BigInteger(d);
          decimal scaled = d - (decimal)bscaled;
          decimal unscaled = scaled * (decimal)scaleMultiplier;
          UnscaledValue = (bscaled * scaleMultiplier) + new BigInteger(unscaled);

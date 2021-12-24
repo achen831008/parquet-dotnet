@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using Parquet.Extensions;
@@ -47,7 +46,7 @@ namespace Parquet.Data.Rows
          Schema = schema ?? throw new ArgumentNullException(nameof(schema));
          _dfs = schema.Fields.ToArray();
 
-         if(tableData != null)
+         if (tableData != null)
          {
             var converter = new DataColumnsToRowsConverter(schema, tableData, rowCount);
             _rows.AddRange(converter.Convert());
@@ -232,7 +231,7 @@ namespace Parquet.Data.Rows
 
          if (!other.Schema.Equals(Schema))
          {
-            if(throwExceptions)
+            if (throwExceptions)
                throw new ArgumentException(Schema.GetNotEqualsMessage(other.Schema, "this", "other"));
 
             return false;
@@ -246,7 +245,7 @@ namespace Parquet.Data.Rows
             return false;
          }
 
-         for(int i = 0; i < Count; i++)
+         for (int i = 0; i < Count; i++)
          {
             if (!this[i].Equals(other[i]))
             {
@@ -326,7 +325,7 @@ namespace Parquet.Data.Rows
             {
                row.ToString(sb, sf, 1, Schema.Fields);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                throw new InvalidOperationException($"failed to convert row #{i}", ex);
             }

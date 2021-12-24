@@ -10,7 +10,7 @@ namespace Parquet.Data.Concrete
       private static readonly Encoding E = Encoding.UTF8;
       private static readonly ArrayPool<byte> _bytePool = ArrayPool<byte>.Shared;
       private static readonly ArrayPool<string> _stringPool = ArrayPool<string>.Shared;
-      
+
       public StringDataTypeHandler() : base(DataType.String, Thrift.Type.BYTE_ARRAY, Thrift.ConvertedType.UTF8)
       {
       }

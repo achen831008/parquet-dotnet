@@ -3,9 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using Parquet.Data;
 using Parquet.File.Values.Primitives;
 
 namespace Parquet.Data.Concrete
@@ -47,7 +44,7 @@ namespace Parquet.Data.Concrete
                   tse.Converted_type = Thrift.ConvertedType.DATE;
                   break;
 
-               //other cases are just default
+                  //other cases are just default
             }
          }
          else
@@ -223,9 +220,9 @@ namespace Parquet.Data.Concrete
 
       public override byte[] PlainEncode(Thrift.SchemaElement tse, DateTimeOffset x)
       {
-         using(var ms = new MemoryStream())
+         using (var ms = new MemoryStream())
          {
-            using(var writer = new BinaryWriter(ms))
+            using (var writer = new BinaryWriter(ms))
             {
                switch (tse.Type)
                {
@@ -251,7 +248,7 @@ namespace Parquet.Data.Concrete
       {
          if (encoded == null) return null;
 
-         using(var ms = new MemoryStream(encoded))
+         using (var ms = new MemoryStream(encoded))
          {
             using (var reader = new BinaryReader(ms))
             {

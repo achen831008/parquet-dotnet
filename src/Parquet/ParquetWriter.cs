@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Parquet.Data;
 using Parquet.File;
 using Parquet.File.Streams;
@@ -41,7 +42,15 @@ namespace Parquet
       /// <param name="append"></param>
       /// <exception cref="ArgumentNullException">Output is null.</exception>
       /// <exception cref="ArgumentException">Output stream is not writeable</exception>
-      public ParquetWriter(Schema schema, Stream output, ParquetOptions formatOptions = null, bool append = false)
+      public static async Task<ParquetWriter> Open(
+         Schema schema, Stream output, ParquetOptions formatOptions = null, bool append = false)
+      {
+         var writer = new ParquetWriter(schema, output, formatOptions, append);
+         await writer.PrepareFile(append);
+         return writer;
+      }
+
+      private ParquetWriter(Schema schema, Stream output, ParquetOptions formatOptions = null, bool append = false)
          : base(new GapStream(output))
       {
          if (output == null) throw new ArgumentNullException(nameof(output));
@@ -49,8 +58,6 @@ namespace Parquet
          if (!output.CanWrite) throw new ArgumentException("stream is not writeable", nameof(output));
          _schema = schema ?? throw new ArgumentNullException(nameof(schema));
          _formatOptions = formatOptions ?? new ParquetOptions();
-
-         PrepareFile(append);
       }
 
       /// <summary>
@@ -77,7 +84,7 @@ namespace Parquet
          set { _footer.CustomMetadata = value.ToDictionary(p => p.Key, p => p.Value); }
       }
 
-      private void PrepareFile(bool append)
+      private async Task PrepareFile(bool append)
       {
          if (append)
          {
@@ -85,7 +92,7 @@ namespace Parquet
 
             ValidateFile();
 
-            Thrift.FileMetaData fileMeta = ReadMetadata();
+            Thrift.FileMetaData fileMeta = await ReadMetadata();
             _footer = new ThriftFooter(fileMeta);
 
             ValidateSchemasCompatible(_footer, _schema);
@@ -140,7 +147,7 @@ namespace Parquet
          }
 
          //finalize file
-         long size = _footer.Write(ThriftStream);
+         long size = _footer.Write(ThriftStream).Result;
 
          //metadata size
          Writer.Write((int)size);  //4 bytes

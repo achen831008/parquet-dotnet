@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Parquet.Data.Rows
 {
@@ -40,17 +39,17 @@ namespace Parquet.Data.Rows
 
       private static void ValidateMap(MapField mf, object value)
       {
-         if(!value.GetType().TryExtractEnumerableType(out Type elementType))
+         if (!value.GetType().TryExtractEnumerableType(out Type elementType))
          {
             throw new ArgumentException($"map must be a collection, but found {value.GetType()}");
          }
 
-         if(elementType != typeof(Row))
+         if (elementType != typeof(Row))
          {
             throw new ArgumentException($"map element must be a collection of rows, but found a collection of {elementType}");
          }
 
-         foreach(Row row in (IEnumerable)value)
+         foreach (Row row in (IEnumerable)value)
          {
             Validate(row, new[] { mf.Key, mf.Value });
          }
@@ -68,7 +67,7 @@ namespace Parquet.Data.Rows
 
          if (lf.Item.SchemaType == SchemaType.Data)
          {
-            DataField df = (DataField)lf.Item;
+            var df = (DataField)lf.Item;
 
             //value is a list of items
 
@@ -79,7 +78,7 @@ namespace Parquet.Data.Rows
          }
          else
          {
-            if(elementType != typeof(Row))
+            if (elementType != typeof(Row))
             {
                throw new ArgumentException($"expected a collection of {typeof(Row)} but found a collection of {elementType}");
             }
@@ -88,7 +87,7 @@ namespace Parquet.Data.Rows
 
       private static void ValidatePrimitive(DataField df, object value)
       {
-         if(value == null)
+         if (value == null)
          {
             if (!df.HasNulls)
                throw new ArgumentException($"element is null but column '{df.Name}' does not accept nulls");
@@ -101,14 +100,14 @@ namespace Parquet.Data.Rows
             if (vt.IsNullable())
                vt = vt.GetNonNullable();
 
-            if(df.IsArray)
+            if (df.IsArray)
             {
-               if(!vt.IsArray)
+               if (!vt.IsArray)
                {
                   throw new ArgumentException($"expected array but found {vt}");
                }
 
-               if(vt.GetElementType() != st)
+               if (vt.GetElementType() != st)
                {
                   throw new ArgumentException($"expected array element type {st} but found {vt.GetElementType()}");
                }

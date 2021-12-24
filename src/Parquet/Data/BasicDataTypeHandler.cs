@@ -86,7 +86,7 @@ namespace Parquet.Data
 
       public virtual void CreateThrift(Field se, Thrift.SchemaElement parent, IList<Thrift.SchemaElement> container)
       {
-         DataField sef = (DataField)se;
+         var sef = (DataField)se;
          var tse = new Thrift.SchemaElement(se.Name);
          tse.Type = _thriftType;
          if (_convertedType != null) tse.Converted_type = _convertedType.Value;
@@ -99,8 +99,8 @@ namespace Parquet.Data
 
       public virtual Array MergeDictionary(Array untypedDictionary, int[] indexes, Array data, int offset, int length)
       {
-         TSystemType[] dictionary = (TSystemType[])untypedDictionary;
-         TSystemType[] result = (TSystemType[])data;
+         var dictionary = (TSystemType[])untypedDictionary;
+         var result = (TSystemType[])data;
 
          for (int i = 0; i < length; i++)
          {
@@ -153,7 +153,7 @@ namespace Parquet.Data
 
       protected T[] UnpackGenericDefinitions<T>(T[] src, int[] definitionLevels, int maxDefinitionLevel)
       {
-         T[] result = (T[])GetArray(definitionLevels.Length, false, true);
+         var result = (T[])GetArray(definitionLevels.Length, false, true);
 
          int isrc = 0;
          for (int i = 0; i < definitionLevels.Length; i++)

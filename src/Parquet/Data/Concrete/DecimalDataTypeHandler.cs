@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using Parquet.Data;
 using Parquet.File.Values.Primitives;
 
 namespace Parquet.Data.Concrete
@@ -37,7 +35,7 @@ namespace Parquet.Data.Concrete
 
          if (se is DecimalDataField dse)
          {
-            if(dse.ForceByteArrayEncoding)
+            if (dse.ForceByteArrayEncoding)
             {
                tse.Type = Thrift.Type.FIXED_LEN_BYTE_ARRAY;
             }
@@ -106,7 +104,7 @@ namespace Parquet.Data.Concrete
 
       public override void Write(Thrift.SchemaElement tse, BinaryWriter writer, ArrayView values, DataColumnStatistics statistics)
       {
-         switch(tse.Type)
+         switch (tse.Type)
          {
             case Thrift.Type.INT32:
                WriteAsInt32(tse, writer, values);
@@ -125,7 +123,7 @@ namespace Parquet.Data.Concrete
       private void ReadAsInt32(Thrift.SchemaElement tse, BinaryReader reader, IList result)
       {
          decimal scaleFactor = (decimal)Math.Pow(10, -tse.Scale);
-         while(reader.BaseStream.Position + 4 <= reader.BaseStream.Length)
+         while (reader.BaseStream.Position + 4 <= reader.BaseStream.Length)
          {
             int iv = reader.ReadInt32();
             decimal dv = iv * scaleFactor;

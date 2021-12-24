@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
-using Parquet.Data;
 
 namespace Parquet
 {
@@ -26,7 +25,7 @@ namespace Parquet
       /// <returns></returns>
       public static bool TryExtractEnumerableType(this Type t, out Type baseType)
       {
-         if(typeof(byte[]) == t)
+         if (typeof(byte[]) == t)
          {
             //it's a special case to avoid confustion between byte arrays and repeatable bytes
             baseType = null;
@@ -58,7 +57,7 @@ namespace Parquet
             }
          }
 
-         if(ti.IsArray)
+         if (ti.IsArray)
          {
             baseType = ti.GetElementType();
             return true;
@@ -72,7 +71,7 @@ namespace Parquet
       {
          TypeInfo ti = t.GetTypeInfo();
 
-         if(ti.IsGenericType && ti.GetGenericTypeDefinition().GetTypeInfo().IsAssignableFrom(typeof(Dictionary<,>).GetTypeInfo()))
+         if (ti.IsGenericType && ti.GetGenericTypeDefinition().GetTypeInfo().IsAssignableFrom(typeof(Dictionary<,>).GetTypeInfo()))
          {
             keyType = ti.GenericTypeArguments[0];
             valueType = ti.GenericTypeArguments[1];
@@ -113,7 +112,7 @@ namespace Parquet
       {
          TypeInfo ti = t.GetTypeInfo();
 
-         if(ti.IsClass)
+         if (ti.IsClass)
          {
             return t;
          }
@@ -125,7 +124,7 @@ namespace Parquet
       {
          TypeInfo ti = t.GetTypeInfo();
 
-         if(ti.IsClass)
+         if (ti.IsClass)
          {
             return t;
          }
