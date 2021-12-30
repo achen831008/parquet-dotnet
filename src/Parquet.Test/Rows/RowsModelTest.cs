@@ -265,7 +265,7 @@ namespace Parquet.Test.Rows
       #region [ List ]
 
       [Fact]
-      public void List_table_equality()
+      public async Task List_table_equality()
       {
          var schema = new Schema(new ListField("ints", new DataField<int>("int")));
 
