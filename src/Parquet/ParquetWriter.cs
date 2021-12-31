@@ -92,7 +92,7 @@ namespace Parquet
 
             ValidateFile();
 
-            Thrift.FileMetaData fileMeta = await ReadMetadata();
+            Thrift.FileMetaData fileMeta = await ReadMetadataAsync();
             _footer = new ThriftFooter(fileMeta);
 
             ValidateSchemasCompatible(_footer, _schema);

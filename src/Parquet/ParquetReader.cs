@@ -9,7 +9,7 @@ using Parquet.File;
 namespace Parquet
 {
    /// <summary>
-   /// Implements Apache Parquet format reader, experimental version for next major release.
+   /// Implements Apache Parquet format reader.
    /// </summary>
    public class ParquetReader : ParquetActor, IDisposable
    {
@@ -26,7 +26,8 @@ namespace Parquet
          _leaveStreamOpen = leaveStreamOpen;
       }
 
-      private ParquetReader(Stream input, ParquetOptions parquetOptions = null, bool leaveStreamOpen = true) : this(input, leaveStreamOpen)
+      private ParquetReader(Stream input, ParquetOptions parquetOptions = null, bool leaveStreamOpen = true)
+         : this(input, leaveStreamOpen)
       {
          if (!input.CanRead || !input.CanSeek) throw new ArgumentException("stream must be readable and seekable", nameof(input));
          if (_input.Length <= 8) throw new IOException("not a Parquet file (size too small)");
@@ -49,7 +50,7 @@ namespace Parquet
          var reader = new ParquetReader(input, parquetOptions, leaveStreamOpen);
 
          //read metadata instantly, now
-         reader._meta = await reader.ReadMetadata();
+         reader._meta = await reader.ReadMetadataAsync();
          reader._footer = new ThriftFooter(reader._meta);
 
          reader.InitRowGroupReaders();

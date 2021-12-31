@@ -51,7 +51,7 @@ namespace Parquet
             throw new IOException($"not a Parquet file(head is '{stail}')");
       }
 
-      internal async Task<Thrift.FileMetaData> ReadMetadata()
+      internal async Task<Thrift.FileMetaData> ReadMetadataAsync()
       {
          GoBeforeFooter();
 

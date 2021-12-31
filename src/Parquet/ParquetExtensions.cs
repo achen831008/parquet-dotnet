@@ -51,8 +51,6 @@ namespace Parquet
       /// <returns></returns>
       public static async Task<Table> ReadAsTable(this ParquetReader reader)
       {
-         throw new NotImplementedException();
-         /*
          Table result = null;
 
          for (int i = 0; i < reader.RowGroupCount; i++)
@@ -78,7 +76,6 @@ namespace Parquet
          }
 
          return result;
-         */
       }
 
       /// <summary>
