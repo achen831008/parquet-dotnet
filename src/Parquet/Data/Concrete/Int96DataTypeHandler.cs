@@ -9,7 +9,7 @@ namespace Parquet.Data.Concrete
       {
       }
 
-      public override bool IsMatch(Thrift.SchemaElement tse, ParquetOptions formatOptions)
+      public override bool IsMatch(Thrift.SchemaElement tse, Options formatOptions)
       {
          return tse.Type == Thrift.Type.INT96 && !formatOptions.TreatBigIntegersAsDates;
       }

@@ -25,7 +25,7 @@ namespace Parquet.Data
 
       public Type ClrType => typeof(TSystemType);
 
-      public virtual bool IsMatch(Thrift.SchemaElement tse, ParquetOptions formatOptions)
+      public virtual bool IsMatch(Thrift.SchemaElement tse, Options formatOptions)
       {
          return
             (tse.__isset.type && _thriftType == tse.Type) &&

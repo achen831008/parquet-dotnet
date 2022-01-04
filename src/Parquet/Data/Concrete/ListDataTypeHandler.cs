@@ -69,7 +69,7 @@ namespace Parquet.Data.Concrete
          fieldHandler.CreateThrift(listField.Item, list, container);
       }
 
-      public override bool IsMatch(Thrift.SchemaElement tse, ParquetOptions formatOptions)
+      public override bool IsMatch(Thrift.SchemaElement tse, Options formatOptions)
       {
          return tse.__isset.converted_type && tse.Converted_type == Thrift.ConvertedType.LIST;
       }

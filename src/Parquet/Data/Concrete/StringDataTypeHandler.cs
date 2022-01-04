@@ -25,13 +25,13 @@ namespace Parquet.Data.Concrete
          return new string[minCount];
       }
 
-      public override bool IsMatch(Thrift.SchemaElement tse, ParquetOptions formatOptions)
+      public override bool IsMatch(Thrift.SchemaElement tse, Options formatOptions)
       {
          return tse.__isset.type &&
             tse.Type == Thrift.Type.BYTE_ARRAY &&
             (
                (tse.__isset.converted_type && tse.Converted_type == Thrift.ConvertedType.UTF8) ||
-               formatOptions.TreatByteArrayAsString
+               (formatOptions.TreatByteArrayAsString)
             );
       }
 

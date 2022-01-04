@@ -43,7 +43,7 @@ namespace Parquet.Data
 
       //todo: all the matches can be much faster, cache them.
 
-      public static IDataTypeHandler Match(Thrift.SchemaElement tse, ParquetOptions formatOptions)
+      public static IDataTypeHandler Match(Thrift.SchemaElement tse, Options formatOptions)
       {
          return _allDataTypes.FirstOrDefault(dt => dt.IsMatch(tse, formatOptions));
       }

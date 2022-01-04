@@ -20,7 +20,7 @@ namespace Parquet.Data
 
       public abstract void CreateThrift(Field field, Thrift.SchemaElement parent, IList<Thrift.SchemaElement> container);
 
-      public abstract bool IsMatch(Thrift.SchemaElement tse, ParquetOptions formatOptions);
+      public abstract bool IsMatch(Thrift.SchemaElement tse, Options formatOptions);
       public Array GetArray(int minCount, bool rent, bool isNullable)
       {
          throw new NotSupportedException();

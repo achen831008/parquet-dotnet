@@ -3,6 +3,7 @@ using System;
 using Xunit;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Parquet.Test
 {
@@ -255,7 +256,7 @@ namespace Parquet.Test
       {
          using (Stream input = OpenTestFile("legacy-list-onearray.parquet"))
          {
-            using (ParquetReader reader = await ParquetReader.Open(input))
+            await using (ParquetFile reader = await ParquetFile.OpenAsync(input))
             {
                Schema schema = reader.Schema;
 
@@ -266,10 +267,8 @@ namespace Parquet.Test
                Assert.Equal(SchemaType.Data, schema[4].SchemaType);
 
                //smoke test we can read it
-               using (ParquetRowGroupReader rg = reader.OpenRowGroupReader(0))
-               {
-                  DataColumn values4 = await rg.ReadColumn((DataField)schema[4]);
-               }
+               RowGroup rg = reader.RowGroups.First();
+               DataColumn values4 = await rg.ReadAsync((DataField)schema[4]);
             }
          }
 

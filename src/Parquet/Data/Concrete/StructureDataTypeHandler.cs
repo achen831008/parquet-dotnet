@@ -33,7 +33,7 @@ namespace Parquet.Data.Concrete
          }
       }
 
-      public override bool IsMatch(Thrift.SchemaElement tse, ParquetOptions formatOptions)
+      public override bool IsMatch(Thrift.SchemaElement tse, Options formatOptions)
       {
          return
             tse.Num_children > 0;

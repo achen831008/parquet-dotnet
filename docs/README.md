@@ -3,19 +3,15 @@
 
 ![Icon](img/banner.jpg)
 
----
+## Parquet.Net
 
+**Fully portable, managed** .NET library to read and write [Apache Parquet](https://parquet.apache.org/) files.
 
+Since v4 only supports `.NET 6.0` which allows me to focus more on performance and stability. If you are coming from v3, read the [breaking changes note](breaking.md).
 
-**Fully portable, managed** .NET library to read and write [Apache Parquet](https://parquet.apache.org/) files. Supports `.NET 6.0`, `.NET 5.0`, `.NET Core 3.1 (LTS)`, `.NET Core 2.1 (LTS)`, `.NET Standard 1.4` and up. 
+Runs everywhere .NET 6 runs - Linux, MacOS, Windows, iOS, Android, Tizen, Xbox, PS4, Raspberry Pi, Samsung TVs and much more.
 
-Runs everywhere .NET runs Linux, MacOS, Windows, iOS, Android, Tizen, Xbox, PS4, Raspberry Pi, Samsung TVs and much more.
-
-Support Web Assembly is coming (email me if you are interested in details).
-
-## Why
-
-Parquet is a de facto physical storage format in big data applications, including [Apache Spark](https://spark.apache.org/), as well as newly emerging [Delta Lake](https://delta.io/) and lakehouse architectures. It's really easy to read and write data if you are using one of those platforms, however in standalone mode it's almost impossible or involves using heavy engines. Parquet.Net is very small, fast, pure managed implementation that is crazy fast.
+Parquet is a de facto physical storage format in big data applications, including [Apache Spark](https://spark.apache.org/), as well as newly emerging [Delta Lake](https://delta.io/) and lakehouse architectures. It's really easy to read and write data if you are using one of those platforms, however in standalone mode it's almost impossible or involves using heavy engines. Parquet.Net is tiny, pure managed implementation that is crazy fast as well. According to internal benchmark, this is the fastest parquet implementation on the planet (at least for .NET).
 
 ## Index
 
@@ -26,6 +22,7 @@ Parquet is a de facto physical storage format in big data applications, includin
 - [Complex Types](complex-types.md)
 - [Row-Based API](rows.md)
 - [Fast Automatic Serialisation](serialisation.md)
+- [Compression](compression.md)
 
 You can track the [amount of features we have implemented so far](features.md).
 

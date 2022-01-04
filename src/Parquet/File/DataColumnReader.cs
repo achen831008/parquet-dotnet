@@ -14,7 +14,7 @@ namespace Parquet.File
       private readonly Thrift.ColumnChunk _thriftColumnChunk;
       private readonly Thrift.SchemaElement _thriftSchemaElement;
       private readonly ThriftFooter _footer;
-      private readonly ParquetOptions _parquetOptions;
+      private readonly Options _parquetOptions;
       private readonly ThriftStream _thriftStream;
       private readonly int _maxRepetitionLevel;
       private readonly int _maxDefinitionLevel;
@@ -44,13 +44,13 @@ namespace Parquet.File
          Stream inputStream,
          Thrift.ColumnChunk thriftColumnChunk,
          ThriftFooter footer,
-         ParquetOptions parquetOptions)
+         Options parquetOptions)
       {
          _dataField = dataField ?? throw new ArgumentNullException(nameof(dataField));
          _inputStream = inputStream ?? throw new ArgumentNullException(nameof(inputStream));
          _thriftColumnChunk = thriftColumnChunk ?? throw new ArgumentNullException(nameof(thriftColumnChunk));
          _footer = footer ?? throw new ArgumentNullException(nameof(footer));
-         _parquetOptions = parquetOptions ?? throw new ArgumentNullException(nameof(parquetOptions));
+         _parquetOptions = parquetOptions;
 
          _thriftStream = new ThriftStream(inputStream);
          _footer.GetLevels(_thriftColumnChunk, out int mrl, out int mdl);

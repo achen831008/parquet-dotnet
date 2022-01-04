@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,10 +16,126 @@ namespace Parquet.File
       private readonly Thrift.FileMetaData _fileMeta;
       private readonly ThriftSchemaTree _tree;
 
+      class MetadataDictionary : IDictionary<string, string>
+      {
+         private readonly FileMetaData _fm;
+
+         public MetadataDictionary(FileMetaData fm)
+         {
+            _fm = fm;
+            if (_fm.Key_value_metadata == null) _fm.Key_value_metadata = new List<KeyValue>();
+         }
+
+         public string this[string key]
+         {
+            get
+            {
+               TryGetValue(key, out string value);
+               return value;
+            }
+
+            set
+            {
+               Add(key, value);
+            }
+         }
+
+         public ICollection<string> Keys => throw new NotImplementedException();
+
+         public ICollection<string> Values => throw new NotImplementedException();
+
+         public int Count => _fm.Key_value_metadata.Count;
+
+         public bool IsReadOnly => false;
+
+         public void Add(string key, string value)
+         {
+            if (key is null)
+               throw new ArgumentNullException(nameof(key));
+
+            Remove(key);
+
+            _fm.Key_value_metadata.Add(new KeyValue { Key = key, Value = value });
+         }
+
+         public void Add(KeyValuePair<string, string> item)
+         {
+            Add(item.Key, item.Value);
+         }
+
+         public void Clear()
+         {
+            _fm.Key_value_metadata.Clear();
+         }
+
+         public bool Contains(KeyValuePair<string, string> item)
+         {
+            return _fm.Key_value_metadata.Any(i => i.Key == item.Key && i.Value == item.Value);
+         }
+
+         public bool ContainsKey(string key)
+         {
+            return _fm.Key_value_metadata.Any(i => i.Key == key);
+         }
+
+         public void CopyTo(KeyValuePair<string, string>[] array, int arrayIndex)
+         {
+            throw new NotImplementedException();
+         }
+
+         public bool Remove(string key)
+         {
+            for(int i = _fm.Key_value_metadata.Count - 1; i >= 0; i--)
+            {
+               if(_fm.Key_value_metadata[i].Key == key)
+               {
+                  _fm.Key_value_metadata.RemoveAt(i);
+                  return true;
+               }
+            }
+
+            return false;
+         }
+
+         public bool Remove(KeyValuePair<string, string> item)
+         {
+            throw new NotImplementedException();
+         }
+
+         public bool TryGetValue(string key, [MaybeNullWhen(false)] out string value)
+         {
+            KeyValue entry = _fm.Key_value_metadata.FirstOrDefault(k => k.Key == key);
+            if (entry == null)
+            {
+               value = null;
+               return false;
+            }
+
+            value = entry.Value;
+            return true;
+         }
+
+         IEnumerator IEnumerable.GetEnumerator()
+         {
+            return CreateEnumerator();
+         }
+
+         public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+         {
+            return CreateEnumerator();
+         }
+
+         private IEnumerator<KeyValuePair<string, string>> CreateEnumerator()
+         {
+            return _fm.Key_value_metadata.Select(k => new KeyValuePair<string, string>(k.Key, k.Value)).GetEnumerator();
+         }
+      }
+
       public ThriftFooter(Thrift.FileMetaData fileMeta)
       {
          _fileMeta = fileMeta ?? throw new ArgumentNullException(nameof(fileMeta));
          _tree = new ThriftSchemaTree(_fileMeta.Schema);
+         Metadata = new MetadataDictionary(_fileMeta);
       }
 
       public ThriftFooter(Schema schema, long totalRowCount)
@@ -32,30 +150,19 @@ namespace Parquet.File
 
          _fileMeta.Created_by = $"Parquet.Net";
          _tree = new ThriftSchemaTree(_fileMeta.Schema);
+         Metadata = new MetadataDictionary(_fileMeta);
       }
 
-      public Dictionary<string, string> CustomMetadata
-      {
-         set
-         {
-            _fileMeta.Key_value_metadata = null;
-            if (value == null || value.Count == 0) return;
-
-            _fileMeta.Key_value_metadata = value
-               .Select(kvp => new Thrift.KeyValue(kvp.Key) { Value = kvp.Value })
-               .ToList();
-         }
-         get
-         {
-            if (_fileMeta.Key_value_metadata == null || _fileMeta.Key_value_metadata.Count == 0) return new Dictionary<string, string>();
-
-            return _fileMeta.Key_value_metadata.ToDictionary(kv => kv.Key, kv => kv.Value);
-         }
-      }
+      public IDictionary<string, string> Metadata { get; }
 
       public void Add(long totalRowCount)
       {
          _fileMeta.Num_rows += totalRowCount;
+      }
+
+      public void Update()
+      {
+         _fileMeta.Num_rows = _fileMeta.Row_groups.Sum(rg => rg.Num_rows);
       }
 
       public async Task<long> Write(ThriftStream thriftStream)
@@ -155,16 +262,14 @@ namespace Parquet.File
 
       public Thrift.RowGroup AddRowGroup()
       {
-         var rg = new Thrift.RowGroup();
+         var rg = new Thrift.RowGroup { Columns = new List<ColumnChunk>() };
          if (_fileMeta.Row_groups == null) _fileMeta.Row_groups = new List<Thrift.RowGroup>();
          _fileMeta.Row_groups.Add(rg);
          return rg;
       }
 
-      public Thrift.ColumnChunk CreateColumnChunk(CompressionMethod compression, Stream output, Thrift.Type columnType, List<string> path, int valuesCount)
+      public Thrift.ColumnChunk CreateColumnChunk(CompressionCodec codec, Stream output, Thrift.Type columnType, List<string> path, int valuesCount)
       {
-         Thrift.CompressionCodec codec = DataFactory.GetThriftCompression(compression);
-
          var chunk = new Thrift.ColumnChunk();
          long startPos = output.Position;
          chunk.File_offset = startPos;
@@ -202,7 +307,7 @@ namespace Parquet.File
 
       #region [ Conversion to Model Schema ]
 
-      public Schema CreateModelSchema(ParquetOptions formatOptions)
+      public Schema CreateModelSchema(Options formatOptions)
       {
          int si = 0;
          Thrift.SchemaElement tse = _fileMeta.Schema[si++];
@@ -213,7 +318,7 @@ namespace Parquet.File
          return new Schema(container);
       }
 
-      private void CreateModelSchema(string path, IList<Field> container, int childCount, ref int si, ParquetOptions formatOptions)
+      private void CreateModelSchema(string path, IList<Field> container, int childCount, ref int si, Options formatOptions)
       {
          for (int i = 0; i < childCount && si < _fileMeta.Schema.Count; i++)
          {

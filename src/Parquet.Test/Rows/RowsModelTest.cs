@@ -42,7 +42,7 @@ namespace Parquet.Test.Rows
          }
 
          //write to stream
-         using (ParquetWriter writer = await ParquetWriter.Open(table.Schema, ms))
+         await using (ParquetFile writer = await ParquetFile.CreateAsync(ms, table.Schema))
          {
             await writer.Write(table);
          }
@@ -50,7 +50,7 @@ namespace Parquet.Test.Rows
          //read back into table
          ms.Position = 0;
          Table table2;
-         using (ParquetReader reader = await ParquetReader.Open(ms))
+         await using (ParquetFile reader = await ParquetFile.OpenAsync(ms))
          {
             table2 = await reader.ReadAsTable();
          }
@@ -126,7 +126,7 @@ namespace Parquet.Test.Rows
          table.Add(3, new[] { "3", "3", "3" });
 
          //write to stream
-         using (ParquetWriter writer = await ParquetWriter.Open(table.Schema, ms))
+         await using (ParquetFile writer = await ParquetFile.CreateAsync(ms, table.Schema))
          {
             await writer.Write(table);
          }
@@ -136,7 +136,7 @@ namespace Parquet.Test.Rows
          //read back into table
          ms.Position = 0;
          Table table2;
-         using (ParquetReader reader = await ParquetReader.Open(ms))
+         await using (ParquetFile reader = await ParquetFile.OpenAsync(ms))
          {
             table2 = await reader.ReadAsTable();
          }
@@ -180,7 +180,7 @@ namespace Parquet.Test.Rows
          Table t;
          using (Stream stream = OpenTestFile("map_simple.parquet"))
          {
-            using (ParquetReader reader = await ParquetReader.Open(stream))
+            await using (ParquetFile reader = await ParquetFile.OpenAsync(stream))
             {
                t = await reader.ReadAsTable();
             }
@@ -285,7 +285,7 @@ namespace Parquet.Test.Rows
          Table t;
          using (Stream stream = OpenTestFile("list_simple.parquet"))
          {
-            using (ParquetReader reader = await ParquetReader.Open(stream))
+            await using (ParquetFile reader = await ParquetFile.OpenAsync(stream))
             {
                t = await reader.ReadAsTable();
             }
@@ -309,7 +309,7 @@ namespace Parquet.Test.Rows
          table.Add(2, new[] { "Paris", "New York" });
 
          //write as table
-         using (ParquetWriter writer = await ParquetWriter.Open(table.Schema, ms))
+         await using (ParquetFile writer = await ParquetFile.CreateAsync(ms, table.Schema))
          {
             await writer.Write(table);
          }
@@ -317,7 +317,7 @@ namespace Parquet.Test.Rows
          //read back into table
          ms.Position = 0;
          Table table2;
-         using (ParquetReader reader = await ParquetReader.Open(ms))
+         await using (ParquetFile reader = await ParquetFile.OpenAsync(ms))
          {
             table2 = await reader.ReadAsTable();
          }
@@ -332,7 +332,7 @@ namespace Parquet.Test.Rows
          Table t;
          using (Stream stream = OpenTestFile("list_structs.parquet"))
          {
-            using (ParquetReader reader = await ParquetReader.Open(stream))
+            await using (ParquetFile reader = await ParquetFile.OpenAsync(stream))
             {
                t = await reader.ReadAsTable();
             }
@@ -494,7 +494,7 @@ namespace Parquet.Test.Rows
       [Fact]
       public async Task Special_read_all_nulls_no_booleans()
       {
-         ReadTestFileAsTable("special/all_nulls_no_booleans.parquet");
+         await ReadTestFileAsTable("special/all_nulls_no_booleans.parquet");
       }
 
       [Fact]
@@ -537,7 +537,7 @@ namespace Parquet.Test.Rows
          var t = new Table(new DataField<int>("id"));
          t.Add(1);
          t.Add(2);
-         using (ParquetWriter writer = await ParquetWriter.Open(t.Schema, ms))
+         await using (ParquetFile writer = await ParquetFile.CreateAsync(ms, t.Schema))
          {
             await writer.Write(t);
          }
@@ -546,13 +546,13 @@ namespace Parquet.Test.Rows
          t.Clear();
          t.Add(3);
          t.Add(4);
-         using (ParquetWriter writer = await ParquetWriter.Open(t.Schema, ms, null, true))
+         await using (ParquetFile writer = await ParquetFile.CreateAsync(ms, t.Schema))
          {
             await writer.Write(t);
          }
 
          //read back as table
-         t = await ParquetReader.ReadTableFromStream(ms);
+         t = await ParquetFile.ReadTableFromStream(ms);
          Assert.Equal(4, t.Count);
       }
 
@@ -569,7 +569,7 @@ namespace Parquet.Test.Rows
          Table t;
          using (Stream stream = OpenTestFile("all_var1.parquet"))
          {
-            using (ParquetReader reader = await ParquetReader.Open(stream))
+            await using (ParquetFile reader = await ParquetFile.OpenAsync(stream))
             {
                t = await reader.ReadAsTable();
             }

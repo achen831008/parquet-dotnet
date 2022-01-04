@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Parquet.Data;
 using Xunit;
 
@@ -38,21 +40,21 @@ namespace Parquet.Test
           - 4: []
           */
 
-         using (ParquetReader reader = await ParquetReader.Open(OpenTestFile("list_empty_alt.parquet")))
+         using Stream testFile = OpenTestFile("list_empty_alt.parquet");
+         await using (ParquetFile reader = await ParquetFile.OpenAsync(testFile))
          {
-            using (ParquetRowGroupReader groupReader = reader.OpenRowGroupReader(0))
-            {
-               Assert.Equal(4, groupReader.RowCount);
-               DataField[] fs = reader.Schema.GetDataFields();
+            RowGroup rg = reader.RowGroups.First();
 
-               DataColumn id = await groupReader.ReadColumn(fs[0]);
-               Assert.Equal(4, id.Data.Length);
-               Assert.False(id.HasRepetitions);
+            Assert.Equal(4, rg.RowCount);
+            DataField[] fs = reader.Schema.GetDataFields();
 
-               DataColumn list = await groupReader.ReadColumn(fs[1]);
-               Assert.Equal(8, list.Data.Length);
-               Assert.Equal(new int[] { 0, 1, 1, 0, 0, 1, 1, 0 }, list.RepetitionLevels);
-            }
+            DataColumn id = await rg.ReadAsync(fs[0]);
+            Assert.Equal(4, id.Data.Length);
+            Assert.False(id.HasRepetitions);
+
+            DataColumn list = await rg.ReadAsync(fs[1]);
+            Assert.Equal(8, list.Data.Length);
+            Assert.Equal(new int[] { 0, 1, 1, 0, 0, 1, 1, 0 }, list.RepetitionLevels);
          }
 
       }

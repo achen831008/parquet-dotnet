@@ -18,14 +18,13 @@ namespace Parquet
       /// </summary>
       public static async Task WriteSingleRowGroupParquetFile(this Stream stream, Schema schema, params DataColumn[] columns)
       {
-         using (ParquetWriter writer = await ParquetWriter.Open(schema, stream))
+         await using (ParquetFile writer = await ParquetFile.CreateAsync(stream, schema))
          {
-            writer.CompressionMethod = CompressionMethod.None;
-            using (ParquetRowGroupWriter rgw = writer.CreateRowGroup())
+            using (WriteableRowGroup rgw = writer.NewRowGroup())
             {
                foreach (DataColumn column in columns)
                {
-                  await rgw.WriteColumn(column);
+                  await rgw.WriteAsync(column);
                }
             }
          }
@@ -34,43 +33,40 @@ namespace Parquet
       /// <summary>
       /// Writes entire table in a single row group
       /// </summary>
-      /// <param name="writer"></param>
+      /// <param name="pf"></param>
       /// <param name="table"></param>
-      public static async Task Write(this ParquetWriter writer, Table table)
+      public static async Task Write(this ParquetFile pf, Table table)
       {
-         using (ParquetRowGroupWriter rowGroupWriter = writer.CreateRowGroup())
+         using (WriteableRowGroup rg = pf.NewRowGroup())
          {
-            await rowGroupWriter.Write(table);
+            await rg.Write(table);
          }
       }
 
       /// <summary>
       /// Reads the first row group as a table
       /// </summary>
-      /// <param name="reader">Open reader</param>
+      /// <param name="pf">Open reader</param>
       /// <returns></returns>
-      public static async Task<Table> ReadAsTable(this ParquetReader reader)
+      public static async Task<Table> ReadAsTable(this ParquetFile pf)
       {
          Table result = null;
 
-         for (int i = 0; i < reader.RowGroupCount; i++)
+         foreach (RowGroup rg in pf.RowGroups)
          {
-            using (ParquetRowGroupReader rowGroupReader = reader.OpenRowGroupReader(i))
+            DataColumn[] allData = await rg.ReadAllColumnsAsync();
+
+            var t = new Table(pf.Schema, allData, rg.RowCount);
+
+            if (result == null)
             {
-               DataColumn[] allData = await Task.WhenAll(reader.Schema.GetDataFields().Select(df => rowGroupReader.ReadColumn(df)));
-
-               var t = new Table(reader.Schema, allData, rowGroupReader.RowCount);
-
-               if (result == null)
+               result = t;
+            }
+            else
+            {
+               foreach (Row row in t)
                {
-                  result = t;
-               }
-               else
-               {
-                  foreach (Row row in t)
-                  {
-                     result.Add(row);
-                  }
+                  result.Add(row);
                }
             }
          }
@@ -83,11 +79,11 @@ namespace Parquet
       /// </summary>
       /// <param name="writer"></param>
       /// <param name="table"></param>
-      public static async Task Write(this ParquetRowGroupWriter writer, Table table)
+      public static async Task Write(this WriteableRowGroup writer, Table table)
       {
          foreach (DataColumn dc in table.ExtractDataColumns())
          {
-            await writer.WriteColumn(dc);
+            await writer.WriteAsync(dc);
          }
       }
 
@@ -101,7 +97,7 @@ namespace Parquet
          var footer = new ThriftFooter(fileMeta);
          Thrift.SchemaElement schema = footer.GetSchemaElement(columnChunk);
 
-         IDataTypeHandler handler = DataTypeFactory.Match(schema, new ParquetOptions { TreatByteArrayAsString = true });
+         IDataTypeHandler handler = DataTypeFactory.Match(schema, new Options { TreatByteArrayAsString = true });
 
          using (var ms = new MemoryStream(rawBytes))
          using (var reader = new BinaryReader(ms))

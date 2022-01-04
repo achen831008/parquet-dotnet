@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using NetBox.IO;
 using Parquet.Data;
@@ -19,47 +20,41 @@ namespace Parquet.Test
             new DataField<int>("id"),
             new DataField<string>("nonsense"));
 
-         using (ParquetWriter writer = await ParquetWriter.Open(schema, forwardOnly))
+         await using (ParquetFile writer = await ParquetFile.CreateAsync(forwardOnly, schema))
          {
-            using (ParquetRowGroupWriter rgw = writer.CreateRowGroup())
+            using (WriteableRowGroup rgw = writer.NewRowGroup())
             {
-               await rgw.WriteColumn(new DataColumn((DataField)schema[0], new[] { 1 }));
-               await rgw.WriteColumn(new DataColumn((DataField)schema[1], new[] { "1" }));
+               await rgw.WriteAsync(new DataColumn((DataField)schema[0], new[] { 1 }));
+               await rgw.WriteAsync(new DataColumn((DataField)schema[1], new[] { "1" }));
             }
 
-            using (ParquetRowGroupWriter rgw = writer.CreateRowGroup())
+            using (WriteableRowGroup rgw = writer.NewRowGroup())
             {
-               await rgw.WriteColumn(new DataColumn((DataField)schema[0], new[] { 2 }));
-               await rgw.WriteColumn(new DataColumn((DataField)schema[1], new[] { "2" }));
+               await rgw.WriteAsync(new DataColumn((DataField)schema[0], new[] { 2 }));
+               await rgw.WriteAsync(new DataColumn((DataField)schema[1], new[] { "2" }));
             }
          }
 
          ms.Position = 0;
-         using (ParquetReader reader = await ParquetReader.Open(ms))
+         await using (ParquetFile reader = await ParquetFile.OpenAsync(ms))
          {
-            Assert.Equal(2, reader.RowGroupCount);
+            Assert.Equal(2, reader.RowGroups.Count);
 
-            using (ParquetRowGroupReader rgr = reader.OpenRowGroupReader(0))
-            {
-               Assert.Equal(1, rgr.RowCount);
+            RowGroup rgr = reader.RowGroups.First();
+            Assert.Equal(1, rgr.RowCount);
 
-               DataColumn column = await rgr.ReadColumn((DataField)schema[0]);
-               Assert.Equal(1, column.Data.GetValue(0));
-            }
+            DataColumn column = await rgr.ReadAsync((DataField)schema[0]);
+            Assert.Equal(1, column.Data.GetValue(0));
 
-            using (ParquetRowGroupReader rgr = reader.OpenRowGroupReader(1))
-            {
-               Assert.Equal(1, rgr.RowCount);
+            rgr = reader.RowGroups.ElementAt(1);
+            Assert.Equal(1, rgr.RowCount);
 
-               DataColumn column = await rgr.ReadColumn((DataField)schema[0]);
-               Assert.Equal(2, column.Data.GetValue(0));
-
-            }
-
+            column = await rgr.ReadAsync((DataField)schema[0]);
+            Assert.Equal(2, column.Data.GetValue(0));
          }
       }
 
-      public class WriteableNonSeekableStream : DelegatedStream
+      class WriteableNonSeekableStream : DelegatedStream
       {
          public WriteableNonSeekableStream(Stream master) : base(master)
          {

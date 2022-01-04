@@ -20,15 +20,46 @@ namespace Parquet.Thrift
    /// 
    /// See Compression.md for a detailed specification of these algorithms.
    /// </summary>
-   enum CompressionCodec
+   public enum CompressionCodec
    {
+      /// <summary>
+      /// No compresison (default)
+      /// </summary>
       UNCOMPRESSED = 0,
+
+      /// <summary>
+      /// 
+      /// </summary>
       SNAPPY = 1,
+
+      /// <summary>
+      /// 
+      /// </summary>
       GZIP = 2,
+
+      /// <summary>
+      /// 
+      /// </summary>
       LZO = 3,
+
+      /// <summary>
+      /// 
+      /// </summary>
       BROTLI = 4,
+
+      /// <summary>
+      /// 
+      /// </summary>
       LZ4 = 5,
+
+      /// <summary>
+      /// 
+      /// </summary>
       ZSTD = 6,
+
+      /// <summary>
+      /// 
+      /// </summary>
       LZ4_RAW = 7,
    }
 }

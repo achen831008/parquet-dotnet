@@ -49,8 +49,6 @@ namespace Parquet.File
       public override int GetHashCode()
       {
          int hashCode = 0;
-         // ReSharper disable once LoopCanBeConvertedToQuery
-         // ReSharper disable once ForCanBeConvertedToForeach
          for (int index = 0; index < _key.Count; index++)
          {
             string key = _key[index];

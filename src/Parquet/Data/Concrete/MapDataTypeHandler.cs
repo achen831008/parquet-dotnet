@@ -67,7 +67,7 @@ namespace Parquet.Data.Concrete
             tseValue.Repetition_type = Thrift.FieldRepetitionType.OPTIONAL;
       }
 
-      public override bool IsMatch(Thrift.SchemaElement tse, ParquetOptions formatOptions)
+      public override bool IsMatch(Thrift.SchemaElement tse, Options formatOptions)
       {
          return
             tse.__isset.converted_type &&

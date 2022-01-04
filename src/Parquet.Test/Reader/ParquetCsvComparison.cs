@@ -1,4 +1,5 @@
 ﻿using NetBox.FileFormats;
+using NetBox.FileFormats.Csv;
 using Parquet.Data;
 using Parquet.File;
 using System;
@@ -108,14 +109,9 @@ namespace Parquet.Test.Reader
       {
          using (Stream s = OpenTestFile(name))
          {
-            using (ParquetReader pr = await ParquetReader.Open(
-               s, new ParquetOptions { TreatByteArrayAsString = treatByteArrayAsString }))
+            await using (ParquetFile pr = await ParquetFile.OpenAsync(s))
             {
-               using (ParquetRowGroupReader rgr = pr.OpenRowGroupReader(0))
-               {
-
-                  return await Task.WhenAll(pr.Schema.GetDataFields().Select(df => rgr.ReadColumn(df)));
-               }
+               return await pr.RowGroups.First().ReadAllColumnsAsync();
             }
          }
       }

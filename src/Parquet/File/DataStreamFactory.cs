@@ -12,26 +12,10 @@ namespace Parquet.File
    {
       private static ArrayPool<byte> BytesPool = ArrayPool<byte>.Shared;
 
-      private static readonly Dictionary<CompressionMethod, Thrift.CompressionCodec> _compressionMethodToCodec =
-         new Dictionary<CompressionMethod, Thrift.CompressionCodec>
-      {
-         { CompressionMethod.None, Thrift.CompressionCodec.UNCOMPRESSED },
-         { CompressionMethod.Gzip, Thrift.CompressionCodec.GZIP },
-         { CompressionMethod.Snappy, Thrift.CompressionCodec.SNAPPY }
-      };
-
-      private static readonly Dictionary<Thrift.CompressionCodec, CompressionMethod> _codecToCompressionMethod =
-         new Dictionary<Thrift.CompressionCodec, CompressionMethod>
-         {
-            { Thrift.CompressionCodec.UNCOMPRESSED, CompressionMethod.None },
-            { Thrift.CompressionCodec.GZIP, CompressionMethod.Gzip },
-            { Thrift.CompressionCodec.SNAPPY, CompressionMethod.Snappy }
-         };
-
       // this will eventually disappear once we fully migrate to System.Memory
       public static GapStream CreateWriter(
          Stream nakedStream,
-         CompressionMethod compressionMethod, int compressionLevel,
+         Thrift.CompressionCodec compressionMethod, int compressionLevel,
          bool leaveNakedOpen)
       {
          Stream dest;
@@ -42,15 +26,15 @@ namespace Parquet.File
 
          switch (compressionMethod)
          {
-            case CompressionMethod.Gzip:
+            case Thrift.CompressionCodec.GZIP:
                dest = new GZipStream(nakedStream, ToGzipCompressionLevel(compressionLevel), leaveNakedOpen);
                leaveNakedOpen = false;
                break;
-            case CompressionMethod.Snappy:
+            case Thrift.CompressionCodec.SNAPPY:
                dest = new SnappyInMemoryStream(nakedStream, CompressionMode.Compress);
                leaveNakedOpen = false;
                break;
-            case CompressionMethod.None:
+            case Thrift.CompressionCodec.UNCOMPRESSED:
                dest = nakedStream;
                break;
             default:
@@ -75,12 +59,9 @@ namespace Parquet.File
          }
       }
 
-      public static BytesOwner ReadPageData(Stream nakedStream, Thrift.CompressionCodec compressionCodec,
+      public static BytesOwner ReadPageData(Stream nakedStream, Thrift.CompressionCodec compressionMethod,
          int compressedLength, int uncompressedLength)
       {
-         if (!_codecToCompressionMethod.TryGetValue(compressionCodec, out CompressionMethod compressionMethod))
-            throw new NotSupportedException($"reader for compression '{compressionCodec}' is not supported.");
-
          int totalBytesRead = 0;
          int currentBytesRead = int.MinValue;
          byte[] data = BytesPool.Rent(compressedLength);
@@ -100,10 +81,10 @@ namespace Parquet.File
 
          switch (compressionMethod)
          {
-            case CompressionMethod.None:
+            case Thrift.CompressionCodec.UNCOMPRESSED:
                //nothing to do, original data is the raw data
                break;
-            case CompressionMethod.Gzip:
+            case Thrift.CompressionCodec.GZIP:
                using (var source = new MemoryStream(data, 0, compressedLength))
                {
                   byte[] unGzData = BytesPool.Rent(uncompressedLength);
@@ -118,7 +99,7 @@ namespace Parquet.File
                   data = unGzData;
                }
                break;
-            case CompressionMethod.Snappy:
+            case Thrift.CompressionCodec.SNAPPY:
                byte[] uncompressed = Snappy.Decode(data.AsSpan(0, compressedLength));
                BytesPool.Return(data);
                data = uncompressed;

@@ -41,14 +41,14 @@ namespace Parquet.Test.Integration
          //produce file
          using (Stream s = F.OpenWrite(testFileName))
          {
-            using (ParquetWriter writer = await ParquetWriter.Open(t.Schema, s))
+            await using (ParquetFile writer = await ParquetFile.CreateAsync(s, t.Schema))
             {
                await writer.Write(t);
             }
          }
 
          //read back
-         Table t2 = await ParquetReader.ReadTableFromFile(testFileName);
+         Table t2 = await ParquetFile.ReadTableFromFile(testFileName);
 
          //check we don't have a bug internally before launching MR
          Assert.Equal(t.ToString("j"), t2.ToString("j"), ignoreLineEndingDifferences: true);

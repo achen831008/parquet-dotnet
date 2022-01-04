@@ -47,6 +47,10 @@ Linux, Windows and Mac are first class citizens, but also works everywhere .NET 
    </ItemGroup>
 
    <ItemGroup>
+     <Compile Include="..\NetBox.cs" Link="3rdparty\NetBox.cs" />
+   </ItemGroup>
+
+   <ItemGroup>
       <PackageReference Include="IronSnappy" Version="1.3.0" />
    </ItemGroup>
    
@@ -55,6 +59,12 @@ Linux, Windows and Mac are first class citizens, but also works everywhere .NET 
        <Pack>True</Pack>
        <PackagePath></PackagePath>
      </None>
+   </ItemGroup>
+
+   <ItemGroup Label="Codecs">
+      <Content Include="..\native-codecs\out\build\debug\codecs.dll" Link="codecs.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug'">
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
    </ItemGroup>
 
 </Project>

@@ -39,9 +39,9 @@ namespace Parquet.Test
       {
          using (Stream s = OpenTestFile("fixedlenbytearray.parquet"))
          {
-            using (ParquetReader r = await ParquetReader.Open(s))
+            await using (ParquetFile r = await ParquetFile.OpenAsync(s))
             {
-               DataColumn[] columns = await r.ReadEntireRowGroup();
+               DataColumn[] columns = await r.RowGroups.First().ReadAllColumnsAsync();
             }
          }
       }
@@ -52,9 +52,9 @@ namespace Parquet.Test
          DateTimeOffset offset, offset2;
          using (Stream s = OpenTestFile("dates.parquet"))
          {
-            using (ParquetReader r = await ParquetReader.Open(s))
+            await using (ParquetFile r = await ParquetFile.OpenAsync(s))
             {
-               DataColumn[] columns = await r.ReadEntireRowGroup();
+               DataColumn[] columns = await r.RowGroups.First().ReadAllColumnsAsync();
 
                offset = (DateTimeOffset)(columns[1].Data.GetValue(0));
                offset2 = (DateTimeOffset)(columns[1].Data.GetValue(1));
@@ -70,9 +70,9 @@ namespace Parquet.Test
          DateTimeOffset offset;
          using (Stream s = OpenTestFile("datetime_other_system.parquet"))
          {
-            using (ParquetReader r = await ParquetReader.Open(s))
+            await using (ParquetFile r = await ParquetFile.OpenAsync(s))
             {
-               DataColumn[] columns = await r.ReadEntireRowGroup();
+               DataColumn[] columns = await r.RowGroups.First().ReadAllColumnsAsync();
 
                DataColumn as_at_date_col = columns.FirstOrDefault(x => x.Field.Name == "as_at_date_");
                Assert.NotNull(as_at_date_col);

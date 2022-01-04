@@ -16,7 +16,7 @@ namespace Parquet.File
       private readonly ThriftStream _thriftStream;
       private readonly ThriftFooter _footer;
       private readonly Thrift.SchemaElement _schemaElement;
-      private readonly CompressionMethod _compressionMethod;
+      private readonly Thrift.CompressionCodec _compressionMethod;
       private readonly int _compressionLevel;
       private readonly int _rowCount;
 
@@ -31,7 +31,7 @@ namespace Parquet.File
          ThriftStream thriftStream,
          ThriftFooter footer,
          Thrift.SchemaElement schemaElement,
-         CompressionMethod compressionMethod,
+         Thrift.CompressionCodec compressionMethod,
          int compressionLevel,
          int rowCount)
       {

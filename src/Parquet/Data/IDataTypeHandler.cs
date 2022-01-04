@@ -12,7 +12,7 @@ namespace Parquet.Data
       /// <param name="tse"></param>
       /// <param name="formatOptions"></param>
       /// <returns></returns>
-      bool IsMatch(Thrift.SchemaElement tse, ParquetOptions formatOptions);
+      bool IsMatch(Thrift.SchemaElement tse, Options formatOptions);
 
       Field CreateSchemaElement(IList<Thrift.SchemaElement> schema, ref int index, out int ownedChildCount);
 
