@@ -3,6 +3,7 @@ name: 'CI'
 env:
   VERSION: 4.0.0
   ASM_VERSION: 4.0.0
+  BUILD_TYPE: Release
 
 on:
   push:
@@ -29,40 +30,12 @@ jobs:
     name: ${{ matrix.os }} codecs
     steps:
     - uses: actions/checkout@v2
-    - name: get-cmake
-      uses: lukka/get-cmake@v3.21.1
-      
 
-  test:
-    name: Test on ${{ matrix.os }}
-    needs: [ build-codecs ]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 6.0.x
-    - name: 'test on ${{ matrix.os }}'
-      run: dotnet test src/Parquet.sln -c release
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      working-directory: src/native-codecs
 
-  pack:
-    needs: [ test ]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 6.0.x
     - name: Build
-      run: dotnet build src/Parquet.sln -c release /p:Version=$VERSION /p:FileVersion=$VERSION /p:AssemblyVersion=$ASM_VERSION
-
-
-  deploy-nuget:
-    needs: [ pack ]
-    environment: nuget
-    runs-on: ubuntu-latest
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      working-directory: src/native-codecs
